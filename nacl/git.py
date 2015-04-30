@@ -40,10 +40,10 @@ def merge_git_repo(git_repo_name):
 
     print(color("INFO", "Checking: ") + dir_name)
 
-    # First if there are any uncommited changes.
-    # In this case skip merging
+    # First check if there are any uncommitted changes.
+    # In this case skip merging!
     if not branch_is_clean():
-        print(color('INFO', 'Uncommited changes, skipping...'))
+        print(color('INFO', 'Uncommitted changes, skipping...'))
         return True
     else:
         pass
@@ -89,7 +89,7 @@ def is_git_repo(dir_name=None):
     if dir_name is None:
         return os.path.exists('.git')
     else:
-        return os.path.exists(dir_name)
+        return os.path.exists(dir_name + '.git')
 
 
 def print_is_git_repo():
