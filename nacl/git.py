@@ -13,9 +13,13 @@ from nacl.fileutils import get_dir_list_from_filesystem
 
 def list_git_repositories():
     """ using a list of local git repositories to check whether
-    they have uncommitted changes or not and list them in a pretty way """
+        they have uncommitted changes or not and list them in a pretty way """
 
     git_repo_list = get_dir_list_from_filesystem('*.git')
+
+    # Some Header
+    print("%-50s %-15s %-15s %-15s %s" % ("Directory", "Active Branch", "Status", "Local Master", "All Branches"))
+    print("=" * 120)
 
     for git_repo in git_repo_list:
         check_git_repo(git_repo)
@@ -53,7 +57,7 @@ def merge_git_repo(git_repo_name):
         print(color('FAIL', 'Checkout master'))
         checkout_branch('master')
 
-    if need_pull_push(True) == 1:
+    if need_pull_push(return_returncode=True) == 1:
         print(color("FAIL", "Need merge! ") + color("INFO", "Try to merge Branch: ") + color("GREEN", branch) + " in " + dir_name)
     else:
         # Switch back to prvevious branch
@@ -178,7 +182,7 @@ def branch_is_clean():
     return False
 
 
-def need_pull_push(return_code=False):
+def need_pull_push(return_returncode=False):
     """ Check whether we need to push or pull """
     git(['remote', 'update'])
     local = git(['rev-parse', 'master'])
@@ -202,7 +206,7 @@ def need_pull_push(return_code=False):
         answer = "Diverged"
         code = 3
 
-    if return_code is True:
+    if return_returncode is True:
         return code
 
     return answer
@@ -252,7 +256,7 @@ def pretty_status():
 
     dir_name = color('WARNING', run(['pwd']).rstrip())
 
-    print("%-50s Active Branch: %-15s %s Status: %-15s Local Master: %-15s All Branches: %5s" % (dir_name, branch, merge_status, status, pull_push, all_branches))
+    print("%-59s %-13s %1s %-23s %-24s %s" % (dir_name, branch, merge_status, status, pull_push, all_branches))
     pass
 
 
