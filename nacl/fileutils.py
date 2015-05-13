@@ -5,11 +5,14 @@
     it's meaning."""
 import salt.config
 # from pprint import pprint
+from distutils import spawn
+import fnmatch
+import os
+import json
 
 
 def binary_exists(binary_name):
     """ checks whether a binary exists."""
-    from distutils import spawn
     binary_path = spawn.find_executable(binary_name)
     if binary_path:
         return True
@@ -36,9 +39,7 @@ def get_salt_root_dirs():
 
 
 def get_dir_list_from_filesystem(filter=None):
-    """ returns a list of local git repositories directories (.git) """
-    import fnmatch
-    import os
+    """ returns a list of local directories (e.g with .git in it's name) """
 
     matches = []
     if filter is None:
@@ -55,13 +56,10 @@ def get_dir_list_from_filesystem(filter=None):
 
 def get_users_nacl_conf():
     """ returns the users nacl configuration """
-    from os.path import expanduser
-    import json
 
-    user_home = expanduser("~")
+    user_home = os.path.expanduser("~")
     user_config = {}
 
     with open(user_home + '.nacl') as data_file:
         user_config = json.load(data_file)
-
     return user_config
