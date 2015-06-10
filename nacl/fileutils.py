@@ -9,6 +9,7 @@ from distutils import spawn
 import fnmatch
 import os
 import json
+import sys
 
 
 def binary_exists(binary_name):
@@ -60,6 +61,10 @@ def get_users_nacl_conf():
     user_home = os.path.expanduser("~")
     user_config = {}
 
-    with open(user_home + '.nacl') as data_file:
-        user_config = json.load(data_file)
-    return user_config
+    try:
+        with open(user_home + '/.nacl') as data_file:
+            user_config = json.load(data_file)
+        return user_config
+    except:
+        print("[ERROR] ~/.nacl not found")
+        sys.exit(3)

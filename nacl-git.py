@@ -9,17 +9,19 @@ Usage:
   nacl-git.py (checkout | c) [BRANCH]
   nacl-git.py mergeall
   nacl-git.py (prune | p)
+  nacl-git.py (compare-remote | cr)
   nacl-git.py (-h | --help)
   nacl-git.py --version
 
 Options:
-  list          List all salt related local respositories
-  branch        Show current branch. If BRANCH is provided it will create BRANCH with --track
-  checkout      Checkout master or BRANCH
-  mergeall      Merge all diverged branches
-  prune         Removes staled remote refs
-  -h --help     Show this screen.
-  --version     Show version.
+  list              List all salt related local respositories
+  branch            Show current branch. If BRANCH is provided it will create BRANCH with --track
+  checkout          Checkout master or BRANCH
+  mergeall          Merge all diverged branches
+  prune             Removes staled remote refs
+  compare-remote    Are all remote git repos on our local filesystem?
+  -h --help         Show this screen.
+  --version         Show version.
 
 """
 # to remember:
@@ -30,6 +32,7 @@ from nacl.git import change_or_create_branch
 from nacl.git import checkout_branch
 from nacl.git import merge_all_repositories
 from nacl.git import remote_prune
+from nacl.git import compare_remote
 from nacl.base import init_nacl
 from vendor.docopt import docopt
 
@@ -57,3 +60,6 @@ if arguments['mergeall']:
 
 if arguments['prune'] or arguments['p']:
     remote_prune()
+
+if arguments['compare-remote'] or arguments['cr']:
+    compare_remote()

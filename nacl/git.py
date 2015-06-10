@@ -9,6 +9,7 @@ from subprocess import Popen, PIPE
 from pprint import pprint
 from nacl.helper import color, run, id_generator
 from nacl.fileutils import get_dir_list_from_filesystem
+import nacl.gitapi
 
 
 def list_git_repositories():
@@ -151,6 +152,32 @@ def check_git_repo(git_repo_name=None):
 
     os.chdir(git_repo_name[:-4])
     pretty_status()
+
+
+def get_local_url_list():
+    """ Get a list off all local rpositories remote url's """
+    url_list = []
+    for repo in get_dir_list_from_filesystem('*.git'):
+        os.chdir(repo[:-4])
+        url_list.append(git(['config', '--get', 'remote.origin.url']).rstrip())
+
+    return url_list
+
+
+def compare_remote():
+    """
+    Compare the existence of remote and local git repositories and show
+    missing local repositories.
+    """
+    local_repo_urls = get_local_url_list()
+
+    print(color("FAIL", "WARNING: This list might be inaccurate!\n It will list remote git repositories, that are not in one of our salt environments!\n That might be ok!\n"))
+    for url, desc in nacl.gitapi.get_remote_url_dict().iteritems():
+        if url not in local_repo_urls:
+                url = color("GREEN", url)
+                desc = color("WARNING", desc)
+                print("%-59s" % (url))
+                print("%-59s\n" % (desc))
 
 
 def git(args, env=None):
