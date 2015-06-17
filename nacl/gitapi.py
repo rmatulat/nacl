@@ -6,12 +6,19 @@
 import nacl.fileutils
 import vendor.gitlab
 import sys
-# import pprint
+import pprint
 
 
 def get_gitgitlab_handle(host, my_token):
     """ returns a gitlab api handle """
     return vendor.gitlab.Gitlab(host, token=my_token)
+
+
+def clean_up_repositorie(repo_dict, ignore_list):
+    """ Cleans up a dict and removes repositories that should be ignored """
+    for i in ignore_list:
+        repo_dict.pop(i, None)
+    return repo_dict
 
 
 def get_remote_url_dict():
@@ -22,6 +29,11 @@ def get_remote_url_dict():
     """
 
     config = nacl.fileutils.get_users_nacl_conf()
+
+    try:
+        ignore_repositories = config['ignore_repositories']
+    except:
+        ignore_repositories = []
 
     git = get_gitgitlab_handle(config['gitapiserver'], config['gitapitoken'])
 
@@ -42,7 +54,7 @@ def get_remote_url_dict():
         for project in group['projects']:
             ssh_url_dict[project['ssh_url_to_repo']] = project['description']
 
-        return ssh_url_dict
+        return clean_up_repositorie(ssh_url_dict, ignore_repositories)
     else:
         print("Git group not found: %s" % config['gitgroup'])
         sys.exit(3)

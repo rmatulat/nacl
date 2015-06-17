@@ -1,0 +1,8 @@
+# Save under ~/.nacl
+{
+    "gitapiserver": "http://gitlab.bundestag.btg/",
+    "githostertype": "gitlab",
+    "gitapitoken": "MyAwesomeGitToken",
+    "gitgroup": "saltstack",
+    "ignore_repositories": ["git@gitlab.example.com:saltstack/salt-btg-tools.git", "git@gitlab.example.com:saltstack/nacl.git"]
+}
