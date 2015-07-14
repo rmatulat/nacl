@@ -10,6 +10,7 @@ Usage:
   nacl-git.py mergeall
   nacl-git.py (merge | m)
   nacl-git.py (prune | pr)
+  nacl-git.py (remote-diff | rd)
   nacl-git.py (compare-remote | cr)
   nacl-git.py (-h | --help)
   nacl-git.py --version
@@ -21,6 +22,7 @@ Options:
   mergeall          Merge all diverged branches of all pillars and modules
   merge             Merges remote into local branch (e.g. 'git merge --ff-only')
   prune             Removes staled remote refs
+  remote-diff        Show diff between local and remote
   compare-remote    Are all remote git repos on our local filesystem?
   -h --help         Show this screen.
   --version         Show version.
@@ -35,6 +37,7 @@ from nacl.git import checkout_branch
 from nacl.git import merge_all_repositories
 from nacl.git import merge_single_repository
 from nacl.git import remote_prune
+from nacl.git import remote_diff
 from nacl.git import compare_remote
 from nacl.base import init_nacl
 from vendor.docopt import docopt
@@ -66,6 +69,9 @@ if arguments['merge'] or arguments['m']:
 
 if arguments['prune'] or arguments['pr']:
     remote_prune()
+
+if arguments['remote-diff'] or arguments['rd']:
+    remote_diff()
 
 if arguments['compare-remote'] or arguments['cr']:
     compare_remote()

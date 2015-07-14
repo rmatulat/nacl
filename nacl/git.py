@@ -85,6 +85,20 @@ def merge_git_repo(git_repo_name=None):
         checkout_branch(branch)
 
 
+def remote_diff():
+    """ Shows the diffs between the local and the origin/master"""
+
+    if not branch_is_clean():
+        print(color('INFO', 'INFO: Uncommitted changes.'))
+
+    git(['fetch'])
+    output = git(['diff', 'master', 'origin/master'])
+    if git(['diff', 'master', 'origin/master']):
+        print(output)
+    else:
+        print(color('INFO', 'No diffs found'))
+
+
 def checkout_branch(branch):
     print_is_git_repo()
     if branch is None:
