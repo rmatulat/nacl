@@ -37,10 +37,17 @@ def merge_all_repositories():
         merge_git_repo(git_repo)
 
 
-def merge_git_repo(git_repo_name):
+def merge_single_repository():
+    """" Merges a single remote repo into the local branch. """
+    merge_git_repo()
+
+
+def merge_git_repo(git_repo_name=None):
     """ Do the heavy lifting of a merge """
 
-    os.chdir(git_repo_name[:-4])
+    if git_repo_name:
+        os.chdir(git_repo_name[:-4])
+
     branch = get_current_branch()
     dir_name = color('WARNING', run(['pwd']).rstrip())
 
@@ -60,7 +67,7 @@ def merge_git_repo(git_repo_name):
         checkout_branch('master')
 
     if need_pull_push(return_returncode=True) == 1:
-        print(color("FAIL", "Need merge! ") + color("INFO", "Try to merge Branch: ") + color("GREEN", branch) + " in " + dir_name)
+        print(color("FAIL", "Need merge! ") + color("INFO", "Try to merge Branch: ") + color("GREEN", "master") + " in " + dir_name)
     else:
         # Switch back to prvevious branch
         if branch != 'master':
