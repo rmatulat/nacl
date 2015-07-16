@@ -219,9 +219,8 @@ def git(args, env=None):
     output, err = p.communicate()
     rc = p.returncode
 
-    if err and rc == 1:
-        print(color("FAIL", err)).rstrip()
-        print(color("GREEN", run(['pwd'])))
+    if err and rc != 0:
+        raise ValueError(err)
     return output
 
 
@@ -234,12 +233,30 @@ def branch_is_clean():
     return False
 
 
-def need_pull_push(return_returncode=False):
+def get_last_commit_sha():
+    """ Return the current commit SHA"""
+    return git(['rev-parse', 'HEAD'])
+
+
+def is_commit_on_remote(sha=None, branch='master'):
+    """ Check if sha is already in the remote branch"""
+    if sha:
+        try:
+            remote_sha = git(['merge-base', sha.rstrip(), 'origin/' + branch])
+            return bool(sha.rstrip() == remote_sha.rstrip())
+        except:
+            return False
+    else:
+        raise ValueError("sha must be provided")
+
+
+def need_pull_push(return_returncode=False, local_branch='master', remote_branch='master'):
     """ Check whether we need to push or pull """
     git(['remote', 'update'])
-    local = git(['rev-parse', 'master'])
-    remote = git(['rev-parse', 'origin/master'])
-    base = git(['merge-base', 'master', 'origin/master'])
+
+    local = git(['rev-parse', local_branch])
+    remote = git(['rev-parse', 'origin/' + remote_branch])
+    base = git(['merge-base', local_branch, 'origin/' + remote_branch])
 
     # print "LOCAL: " + local
     # print "REMOTE: " + remote

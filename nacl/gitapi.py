@@ -58,3 +58,5 @@ def get_remote_url_dict():
     else:
         print("Git group not found: %s" % config['gitgroup'])
         sys.exit(3)
+
+
