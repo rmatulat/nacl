@@ -88,6 +88,14 @@ class GitLapApiCall(object):
         else:
             return False
 
+    def edit_issue(self, issue_id=None, **kwargs):
+        """ Closes an issue """
+
+        if not issue_id:
+            raise ValueError('issue_id must be provided')
+        p_id = self.get_project_id()
+        return self.editissue(p_id, issue_id, **kwargs)
+
     def issue_iid_to_uid(self, iid=None):
         """ Takes a iid and gives the uid back.
             This only works inside a project context, where every issue
@@ -100,7 +108,7 @@ class GitLapApiCall(object):
         all_project_issues = self.get_all_issues()
         if all_project_issues:
             for issue in all_project_issues:
-                if issue['iid'] == iid:
+                if int(issue['iid']) == int(iid):
                     return issue['id']
         return False
 
@@ -143,4 +151,8 @@ class GitLapApiCall(object):
 
     def getbranch(self, p_id, branch):
         return self.git.getbranch(p_id, branch)
+
+    def editissue(self, p_id, issue_id, **kwargs):
+        return self.git.editissue(p_id, issue_id, **kwargs)
+
     # Shit ends here

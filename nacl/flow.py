@@ -15,45 +15,74 @@ class NaclFlow(object):
     def __init__(self):
         self.api = api.GitLapApiCall()
 
-    def get_all_issues(self):
+    def get_all_issues(self, all=None):
         """ Gets all issues of a project """
 
         issues = self.api.get_all_issues()
 
         if issues:
             for issue in issues:
-                if issue['state'] == 'closed':
+                if not all and issue['state'] == 'closed':
                     continue
                 print(color('INFO', "TITLE: " + issue['title']))
-                # print(color('GREEN', "UID: " + str(issue['id'])))
                 print(color('GREEN', "ID: " + str(issue['iid'])))
                 print(color('GREEN', "WHAT: " + issue['description']))
+                print(color('GREEN', "STATE: " + issue['state']))
                 print(color('INFO', "AUTHOR: " + issue['author']['name']))
+                if issue['assignee']:
+                    print(color('GREEN', "ASSIGNEE: " + issue['assignee']['name']))
                 print("-") * 80
         else:
             print(color('INFO', 'No issues found'))
 
-    def get_my_issues(self):
+    def get_my_issues(self, all=None):
         """ List all my open issues """
         issues = self.api.get_my_issues()
 
         if issues:
             for issue in issues:
-                if issue['state'] == 'closed':
+                if not all and issue['state'] == 'closed':
                     continue
 
                 project = self.api.getproject(issue['project_id'])
 
                 print(color('INFO', "TITLE: " + issue['title']))
-                # print(color('GREEN', "UID: " + str(issue['id'])))
                 print(color('GREEN', "ID: " + str(issue['iid'])))
                 print(color('GREEN', "URL: " + project['web_url']))
                 print(color('BOLD', "REPO: " + project['description']))
                 print(color('GREEN', "WHAT: " + issue['description']))
+                print(color('GREEN', "STATE: " + issue['state']))
                 print(color('INFO', "AUTHOR: " + issue['author']['name']))
+                if issue['assignee']:
+                    print(color('GREEN', "ASSIGNEE: " + issue['assignee']['name']))
                 print("-") * 80
         else:
             print(color('INFO', 'No issues found'))
+
+    def edit_issue(self, issue_id=None, do=None):
+        """ Close or reopen an issue """
+        if issue_id:
+            issue_uid = self.api.issue_iid_to_uid(issue_id)
+            if not issue_uid:
+                print(color('FAIL', "Issue {0} not found").format(issue_id))
+                sys.exit(1)
+
+            if do == 'close':
+                state_event = 'close'
+            elif do == 'reopen':
+                state_event = 'reopen'
+            else:
+                raise ValueError('do must be close or reopen')
+
+            ret_val = self.api.edit_issue(issue_uid, state_event=state_event)
+            if ret_val['state'] == 'closed':
+                print(color('GREEN', "Issue {0} closed").format(issue_id))
+            elif ret_val['state'] == 'reopened':
+                print(color('GREEN', "Issue {0} reopened").format(issue_id))
+            else:
+                print(color('FAIL', "Issue {0} has state: {1}").format(issue_id, ret_val['state']))
+        else:
+            print(color('WARNING', "Issue ID must be provided"))
 
     def write_patch_for_issue(self, issue_id=None):
         """ Workflow for resolving an issue, step 1:
@@ -184,11 +213,11 @@ class NaclFlow(object):
                 print(color('INFO', "Name: " + member['name']))
                 print(color('GREEN', "ID: " + str(member['id'])))
 
-    def list_all_mergerequests(self):
+    def list_all_mergerequests(self, all=False):
         """ Display all open mergerequests of a project """
         mergerequests = self.api.get_all_mergerequests()
         for mergerequest in mergerequests:
-            if mergerequest['state'] == 'closed' or mergerequest['state'] == 'merged':
+            if not all and mergerequest['state'] == 'closed' or mergerequest['state'] == 'merged':
                 continue
 
             print(color('INFO', "TITLE: " + mergerequest['title']))
