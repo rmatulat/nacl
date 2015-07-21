@@ -306,3 +306,26 @@ class NaclFlow(object):
                 print(color('FAIL', "Mergerequest already closed? Is there a mergerequest with this ID? State: {0}").format(return_values['state']))
         else:
             print(color('INFO', "Merge aborted!"))
+
+    def get_commit(self, commit=None):
+        """ Displays a commit """
+        if not commit:
+            print(color('FAIL', "Commit SHA must be provided"))
+
+        p_id = self.api.get_project_id()
+        details = self.api.getrepositorycommit(p_id, commit)
+        diffs = self.api.getrepositorycommitdiff(p_id, commit)
+
+        if details:
+            print(color('BOLD', "COMMIT: {0}").format(commit))
+            print(color('GREEN', "AUTHOR: {0}").format(details['author_name']))
+            print(color('GREEN', "MESSAGE:\n{0}").format(color("DARKCYAN", details['message'])))
+            print(color('GREEN', "DATE: {0}").format(details['created_at']))
+        else:
+            print(color('FAIL', "Commit not found: {0}").format(commit))
+            sys.exit(1)
+
+        if diffs:
+            print(color('GREEN', "DIFF:\n"))
+            for diff in diffs:
+                print(color('BOLD', "{0}").format(diff['diff']))

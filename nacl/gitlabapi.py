@@ -155,6 +155,7 @@ class GitLapApiCall(object):
 
         ngit.git(['checkout', '-b', 'tmp_' + target_branch, 'origin/' + target_branch])
 
+        # Try to merge and cleanup
         try:
             ngit.git(['merge', 'tmp_' + target_branch, 'tmp_' + source_branch])
             ngit.git(['checkout', current_branch])
@@ -206,4 +207,9 @@ class GitLapApiCall(object):
     def editissue(self, p_id, issue_id, **kwargs):
         return self.git.editissue(p_id, issue_id, **kwargs)
 
+    def getrepositorycommit(self, p_id, sha1):
+        return self.git.getrepositorycommit(p_id, sha1)
+
+    def getrepositorycommitdiff(self, p_id, sha1):
+        return self.git. getrepositorycommitdiff(p_id, sha1)
     # Shit ends here

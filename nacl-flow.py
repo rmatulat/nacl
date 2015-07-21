@@ -14,6 +14,7 @@ Usage:
   nacl-flow.py (accept-merge | am) MERGEREQUEST_ID
   nacl-flow.py (start-patch | sp) ID
   nacl-flow.py (commit-patch | cp) [ASSIGNEE] [TEXT]
+  nacl-flow.py (get-commit | gc) SHA
   nacl-flow.py (-h | --help)
   nacl-flow.py --version
 
@@ -83,3 +84,7 @@ if arguments['start-patch'] or arguments['sp']:
 if arguments['commit-patch'] or arguments['cp']:
     flow = NaclFlow()
     flow.commit_patch(assignee_id=arguments['ASSIGNEE'], mr_text=arguments['TEXT'])
+
+if arguments['get-commit'] or arguments['gc']:
+    flow = NaclFlow()
+    flow.get_commit(commit=arguments['SHA'])
