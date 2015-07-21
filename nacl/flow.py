@@ -61,6 +61,12 @@ class NaclFlow(object):
 
     def edit_issue(self, issue_id=None, do=None):
         """ Close or reopen an issue """
+        try:
+            issue_id = int(issue_id)
+        except ValueError:
+            print(color('WARNING', "ID must be an integer"))
+            sys.exit(1)
+
         if issue_id:
             issue_uid = self.api.issue_iid_to_uid(issue_id)
             if not issue_uid:
@@ -82,7 +88,7 @@ class NaclFlow(object):
             else:
                 print(color('FAIL', "Issue {0} has state: {1}").format(issue_id, ret_val['state']))
         else:
-            print(color('WARNING', "Issue ID must be provided"))
+            print(color('WARNING', "Issue ID must be provided and an integer"))
 
     def write_patch_for_issue(self, issue_id=None):
         """ Workflow for resolving an issue, step 1:
@@ -135,6 +141,7 @@ class NaclFlow(object):
         # 1. Check whether the current commit is already in the remote master branch
         # 2. If not if we need to push our local changes to the remote. There might be 2 reasons:
         #   - The source_branch of the mergerequest doesn't exists on the remote.
+        #   - If there is no source_branch, we have to merge the origin/master into our issue branch to avoid conflicts on the origin side.
         #   - The source_branch exists but we have new commits for that MR
         #
         #  We now have our local changes at the remote in a seperate branch.
@@ -150,7 +157,7 @@ class NaclFlow(object):
 
         if sha_is_on_remote:
             print(color('WARNING', "Your local commit is already in the remote master branch.\nAborting!"))
-            sys.exit()
+            sys.exit(1)
 
         # Step 2: Check whether we have to push our local changes to the remote
 
@@ -166,6 +173,21 @@ class NaclFlow(object):
 
         if not sourcebranch_on_remote:
             need_push = True
+            # We need to merge the origin/master into our issue branch because
+            # of avoiding conflicts in the merge workflow on the origin side.
+            try:
+                print(color('INFO', "Try to rebase origin master into " + sourcebranch))
+
+                git.git(['fetch'])
+                git.git(['rebase', 'origin/master'])
+            except ValueError as e:
+                print(color('FAIL', "Merge into {0} failed: {1}").format(sourcebranch, e.message))
+                git.git(['rebase', '--abort'])
+                print('Please run \n\ngit pull --rebase\n\nand manually and resolve your CONFLICTs.')
+                print('Then run\n\ngit add <FILE>\n git rebase --continue')
+                print('At least run\n\nnacl-flow cp again')
+                sys.exit(1)
+
         else:
             # Second check whether we have un-pushed local commits.
             # We check the local source branch compared to the remote
@@ -217,11 +239,12 @@ class NaclFlow(object):
         """ Display all open mergerequests of a project """
         mergerequests = self.api.get_all_mergerequests()
         for mergerequest in mergerequests:
-            if not all and mergerequest['state'] == 'closed' or mergerequest['state'] == 'merged':
+            if not all and mergerequest['state'] == 'closed' or not all and mergerequest['state'] == 'merged':
                 continue
 
             print(color('INFO', "TITLE: " + mergerequest['title']))
             print(color('GREEN', "BRANCH: " + mergerequest['source_branch']))
+            print(color('GREEN', "STATE: " + mergerequest['state']))
             if mergerequest['assignee']:
                 print(color('GREEN', "ASSIGNEE: " + mergerequest['assignee']['name']))
             print(color('GREEN', "ID: " + str(mergerequest['id'])))
@@ -252,17 +275,34 @@ class NaclFlow(object):
             print(comment['note'] + "\n" + "-" * 40)
 
     def accept_mergerequest(self, mergerequest_id=None):
-        """ Accept a mergerequest """
+        """ Accept a mergerequest
+            That has to have an awful workflow, because we want to ensure
+            that the MR may merge and will not cause any CONFLICT's.
+            CONFLICT's are not a complete desaster, but we like to have the
+            author of a patch tp be resonsible for that, and not the one
+            who accepts the MR.
+        """
         do_merge = query_yes_no("Should mergerequest " + mergerequest_id + " be merged?", "no")
+
+        if not self.api.is_mergerequest_open(mergerequest_id):
+            print(color('FAIL', "Mergerequest '{0}' already closed? Is there a mergerequest with this ID?").format(mergerequest_id))
+            sys.exit(1)
 
         if do_merge:
             print(color('GREEN', "Start merge"))
-            return_values = self.api.accept_mergerequest(mergerequest_id)
+
+            if self.api.mr_is_mergeable(mergerequest_id):
+                return_values = self.api.accept_mergerequest(mergerequest_id)
+            else:
+                print(color('FAIL', "Mergerequest would not merge into origin/master"))
+                p_id = self.api.get_project_id()
+                self.api.addcommenttomergerequest(p_id, mergerequest_id, 'Could not be merged due to CONFLICTs')
+                sys.exit(1)
 
             if return_values and return_values['state'] == 'merged':
                 print(color('GREEN', "Merge complete. Remove " + return_values['source_branch']))
                 git.git(['push', 'origin', '--delete', return_values['source_branch']])
             else:
-                print(color('FAIL', "Mergerequest already closed? Is there a mergerequest with this ID?"))
+                print(color('FAIL', "Mergerequest already closed? Is there a mergerequest with this ID? State: {0}").format(return_values['state']))
         else:
             print(color('INFO', "Merge aborted!"))

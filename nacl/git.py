@@ -4,10 +4,11 @@
 """ Handles git related stuff """
 import sys
 import os.path
+import os
 from subprocess import call
 from subprocess import Popen, PIPE
 from pprint import pprint
-from nacl.helper import color, run, id_generator
+from nacl.helper import color, run, id_generator, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 import nacl.gitapi
 import pprint
@@ -214,6 +215,9 @@ def git(args, env=None):
         env = env
     else:
         env = {"https_proxy": "http://proxy.dbtg.btg:8000"}
+
+    # We have to merge the os.environment and env, because we need HOME!
+    env = merge_two_dicts(env, os.environ)
 
     p = Popen(['git'] + args, stdout=PIPE, stderr=PIPE, env=env)
     output, err = p.communicate()

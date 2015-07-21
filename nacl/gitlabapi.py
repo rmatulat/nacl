@@ -59,6 +59,19 @@ class GitLapApiCall(object):
 
         return True
 
+    def is_mergerequest_open(self, mergerequest_id=None):
+        """ Check whether a mergerqeust is new """
+
+        if not mergerequest_id:
+            raise ValueError("mergerequest_id must be provided")
+
+        mr_details = self.get_mergerequest_details(mergerequest_id)
+
+        if mr_details['changes']:
+            return bool(mr_details['changes']['state'] == 'opened')
+        else:
+            return False
+
     def get_all_issues(self):
         """ Gets all issues of a project """
         p_id = self.get_project_id()
@@ -120,6 +133,41 @@ class GitLapApiCall(object):
         values['comments'] = self.git.getmergerequestcomments(p_id, mergerequest_id)
         return values
 
+    def mr_is_mergeable(self, mergerequest_id=None):
+        """ Check whether a mergerequest can be merged without a conflict .
+            Workflow:
+            1. create a temporary copy of source_branch we like to check if it is mergeable
+            2. create a temporary copy of target_branch we like to check against
+            3. Try to merge the tmp_target_branch branch into tmp_source_branch
+            4. Return whether it is successfull or not
+            5. Cleanup tmp_branches
+        """
+        if not mergerequest_id:
+            raise ValueError('mergerequest_id and/or branch must be provided')
+
+        mr_details = self.get_mergerequest_details(mergerequest_id)
+        current_branch = ngit.get_current_branch()
+        source_branch = mr_details['changes']['source_branch']
+        target_branch = mr_details['changes']['target_branch']
+
+        # Checkout the branches
+        ngit.git(['checkout', '-b', 'tmp_' + source_branch, 'origin/' + source_branch])
+
+        ngit.git(['checkout', '-b', 'tmp_' + target_branch, 'origin/' + target_branch])
+
+        try:
+            ngit.git(['merge', 'tmp_' + target_branch, 'tmp_' + source_branch])
+            ngit.git(['checkout', current_branch])
+            ngit.git(['branch', '-D', 'tmp_' + source_branch])
+            ngit.git(['branch', '-D', 'tmp_' + target_branch])
+            return True
+        except:
+            ngit.git(['merge', '--abort'])
+            ngit.git(['checkout', current_branch])
+            ngit.git(['branch', '-D', 'tmp_' + source_branch])
+            ngit.git(['branch', '-D', 'tmp_' + target_branch])
+            return False
+
     def accept_mergerequest(self, mergerequest_id):
         p_id = self.get_project_id()
         return self.git.acceptmergerequest(p_id, mergerequest_id)
@@ -145,6 +193,9 @@ class GitLapApiCall(object):
 
     def createmergerequest(self, p_id, sourcebranch, targetbranch, title, assignee_id=None):
         return self.git.createmergerequest(p_id, sourcebranch, targetbranch, title, assignee_id=assignee_id)
+
+    def addcommenttomergerequest(self, p_id, mergerequest_id, note):
+        return self.git.addcommenttomergerequest(p_id, mergerequest_id, note)
 
     def updatemergerequest(self, p_id, mergerequest_id, **kwargs):
         return self.git.updatemergerequest(p_id, mergerequest_id, **kwargs)
