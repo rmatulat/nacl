@@ -183,7 +183,7 @@ class NaclFlow(object):
             except ValueError as e:
                 print(color('FAIL', "Merge into {0} failed: {1}").format(sourcebranch, e.message))
                 git.git(['rebase', '--abort'])
-                print('Please run \n\ngit pull --rebase\n\nand manually and resolve your CONFLICTs.')
+                print('Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.')
                 print('Then run\n\ngit add <FILE>\n git rebase --continue')
                 print('At least run\n\nnacl-flow cp again')
                 sys.exit(1)
