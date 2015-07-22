@@ -26,9 +26,10 @@ Options:
   projectmember     List all possible assignees
   mergerequests     List all open mergerequests of a project
   mergedetails      Show details of a mergerequest
+  acceptmerge       Accept a mergerequest
   start-patch       Step 1 in resolving an issue: start a patch. NOTE: You have to provide the ID of the issue
   commit-patch      Step 2 open a mergerequest, ASSIGNEE = ID of a user, TEXT = MR text
-  acceptmerge       Accept a mergerequest
+  get-commit        Get infos of a commit and display them
   -h --help         Show this screen.
   --version         Show version.
 

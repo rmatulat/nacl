@@ -10,6 +10,7 @@ from subprocess import Popen, PIPE
 from pprint import pprint
 from nacl.helper import color, run, id_generator, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
+from nacl.fileutils import get_users_nacl_conf
 import nacl.gitapi
 import pprint
 
@@ -206,18 +207,28 @@ def compare_remote():
                 print("%-59s\n" % (desc))
 
 
-def git(args, env=None):
+def git(args, env={}):
     """ @args: list
         @env: dict
         Some kind of git wrapping
     """
-    if env is not None:
+
+    user_config = get_users_nacl_conf()
+
+    if env:
         env = env
-    else:
-        env = {"https_proxy": "http://proxy.dbtg.btg:8000"}
 
     # We have to merge the os.environment and env, because we need HOME!
     env = merge_two_dicts(env, os.environ)
+
+    # Any Proxy?
+    try:
+        proxy = user_config['proxy']
+    except KeyError:
+        proxy = False
+
+    if proxy:
+        env = merge_two_dicts(env, {'https_proxy': user_config['proxy']})
 
     p = Popen(['git'] + args, stdout=PIPE, stderr=PIPE, env=env)
     output, err = p.communicate()
