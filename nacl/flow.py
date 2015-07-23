@@ -18,7 +18,11 @@ class NaclFlow(object):
     def get_all_issues(self, all=None):
         """ Gets all issues of a project """
 
-        issues = self.api.get_all_issues()
+        try:
+            issues = self.api.get_all_issues()
+        except TypeError as e:
+            print(color('FAIL', 'Project ID not found. Is remote origin a gitlab repo? ({0})').format(e.message))
+            sys.exit(1)
 
         if issues:
             for issue in issues:
