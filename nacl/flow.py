@@ -109,6 +109,10 @@ class NaclFlow(object):
             print(color('WARNING', "Not a git repository"))
             sys.exit(1)
 
+        if not git.branch_is_clean():
+            print(color('WARNING', "Your branch is not clean. Please commit your changes first."))
+            sys.exit(1)
+
         p_id = self.api.get_project_id()
 
         # Transform iid to id
@@ -138,7 +142,7 @@ class NaclFlow(object):
         if not git.branch_is_clean():
             output = git.git(['status', '-s'])
             print(output)
-            print(color('WARNING', "You have uncommitted changes. Please commit them first"))
+            print(color('WARNING', "You have uncommitted changes. Please commit them first!"))
             sys.exit(1)
 
         # We have to do some validating:
