@@ -327,7 +327,7 @@ class NaclFlow(object):
         if details:
             print(color('BOLD', "COMMIT: {0}").format(commit))
             print(color('GREEN', "AUTHOR: {0}").format(details['author_name']))
-            print(color('GREEN', "MESSAGE:\n{0}").format(color("DARKCYAN", details['message'])))
+            print(color('GREEN', "MESSAGE:\n{0}").format(color("DARKCYAN", details['message'].encode('utf-8'))))
             print(color('GREEN', "DATE: {0}").format(details['created_at']))
         else:
             print(color('FAIL', "Commit not found: {0}").format(commit))
