@@ -151,6 +151,11 @@ class GitLapApiCall(object):
         target_branch = mr_details['changes']['target_branch']
 
         # Checkout the branches
+        reverse_stash = False
+        if not ngit.branch_is_clean():
+            reverse_stash = True
+            ngit.git(['stash'])
+
         ngit.git(['fetch', 'origin'])
         ngit.git(['checkout', '-b', 'tmp_' + source_branch, 'origin/' + source_branch])
 
@@ -160,12 +165,16 @@ class GitLapApiCall(object):
         try:
             ngit.git(['merge', 'tmp_' + target_branch, 'tmp_' + source_branch])
             ngit.git(['checkout', current_branch])
+            if reverse_stash:
+                ngit.git(['stash', 'apply'])
             ngit.git(['branch', '-D', 'tmp_' + source_branch])
             ngit.git(['branch', '-D', 'tmp_' + target_branch])
             return True
         except:
             ngit.git(['merge', '--abort'])
             ngit.git(['checkout', current_branch])
+            if reverse_stash:
+                ngit.git(['stash', 'apply'])
             ngit.git(['branch', '-D', 'tmp_' + source_branch])
             ngit.git(['branch', '-D', 'tmp_' + target_branch])
             return False
