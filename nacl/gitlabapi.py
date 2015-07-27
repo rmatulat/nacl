@@ -6,18 +6,20 @@
 import nacl.fileutils
 import nacl.git as ngit
 from nacl.helper import color
-import vendor.gitlab
 import sys
 import pprint
+from vendor.gitlab import Gitlab
 
 
-class GitLapApiCall(object):
+class GitLapApiCall(Gitlab):
     """ Api Calls, we are doing based on Gitlab Class"""
 
     def __init__(self):
         self.config = nacl.fileutils.get_users_nacl_conf()
-
-        self.git = vendor.gitlab.Gitlab(self.config['gitapiserver'], token=self.config['gitapitoken'])
+        super(GitLapApiCall, self).__init__(
+            self.config['gitapiserver'],
+            token=self.config['gitapitoken']
+        )
 
     def get_project_id(self):
         """ returns a gitlab Project ID """
@@ -28,7 +30,7 @@ class GitLapApiCall(object):
         remote = ngit.git(['config', '--get', 'remote.origin.url'])
         remote = remote.rstrip().split(':')[1]
         try:
-            return self.git.getproject(remote[:-4])['id']
+            return self.getproject(remote[:-4])['id']
         except:
             print(color('WARNING', 'API Call?'))
             return False
@@ -36,7 +38,7 @@ class GitLapApiCall(object):
     def get_group_id(self):
         """ Get the ID of our saltstack gitlab group """
         try:
-            for group in self.git.getgroups():
+            for group in self.getgroups():
                 if group['name'] == self.config['gitgroup']:
                     return group['id']
         except:
@@ -50,11 +52,13 @@ class GitLapApiCall(object):
             raise ValueError("sourcebranch and targetbranch must be provided")
 
         p_id = self.get_project_id()
-        mergerequests = self.git.getmergerequests(p_id)
+        mergerequests = self.getmergerequests(p_id)
         for mergerequest in mergerequests:
-            if mergerequest['state'] == 'closed' or mergerequest['state'] == 'merged':
+            if mergerequest['state'] == 'closed' or \
+               mergerequest['state'] == 'merged':
                 continue
-            if mergerequest['source_branch'] == sourcebranch and mergerequest['target_branch'] == targetbranch:
+            if mergerequest['source_branch'] == sourcebranch and \
+               mergerequest['target_branch'] == targetbranch:
                 return False
 
         return True
@@ -74,10 +78,11 @@ class GitLapApiCall(object):
 
     def get_all_issues(self):
         """ Gets all issues of a project """
+
         p_id = self.get_project_id()
         issues = None
         if p_id:
-            issues = self.git.getprojectissues(p_id)
+            issues = self.getprojectissues(p_id)
         else:
             raise TypeError("No Project ID found!")
 
@@ -86,16 +91,16 @@ class GitLapApiCall(object):
     def get_all_mergerequests(self):
         """ Returns a list of all mergerequests of a project """
         p_id = self.get_project_id()
-        return self.git.getmergerequests(p_id)
+        return self.getmergerequests(p_id)
 
     def list_group_members(self):
         """ Return a list with all project users  """
         g_id = self.get_group_id()
-        return self.git.getgroupmembers(g_id)
+        return self.getgroupmembers(g_id)
 
     def get_my_issues(self):
         """ List all my open issues """
-        issues = self.git.getissues()
+        issues = self.getissues()
         if issues:
             return issues
         else:
@@ -129,8 +134,10 @@ class GitLapApiCall(object):
         """ Gets details of a mergerequest """
         values = {}
         p_id = self.get_project_id()
-        values['changes'] = self.git.getmergerequestchanges(p_id, mergerequest_id)
-        values['comments'] = self.git.getmergerequestcomments(p_id, mergerequest_id)
+        values['changes'] = self.getmergerequestchanges(
+            p_id, mergerequest_id)
+        values['comments'] = self.getmergerequestcomments(
+            p_id, mergerequest_id)
         return values
 
     def mr_is_mergeable(self, mergerequest_id=None):
@@ -181,45 +188,15 @@ class GitLapApiCall(object):
 
     def accept_mergerequest(self, mergerequest_id):
         p_id = self.get_project_id()
-        return self.git.acceptmergerequest(p_id, mergerequest_id)
+        return self.acceptmergerequest(p_id, mergerequest_id)
 
     def remote_branch_exists(self, branch, p_id):
         """ Check if branch exits on remote"""
         if branch:
             try:
-                remote_branch = self.git.getbranch(p_id, branch)
+                remote_branch = self.getbranch(p_id, branch)
                 return bool(remote_branch)
             except:
                 return False
         else:
             raise ValueError("branch must be provided")
-
-    # This is shit.
-    # I have to fix this an inherit from Gitlab
-    def getproject(self, id):
-        return self.git.getproject(id)
-
-    def getprojectissue(self, p_id, issue_id):
-        return self.git.getprojectissue(p_id, issue_id)
-
-    def createmergerequest(self, p_id, sourcebranch, targetbranch, title, assignee_id=None):
-        return self.git.createmergerequest(p_id, sourcebranch, targetbranch, title, assignee_id=assignee_id)
-
-    def addcommenttomergerequest(self, p_id, mergerequest_id, note):
-        return self.git.addcommenttomergerequest(p_id, mergerequest_id, note)
-
-    def updatemergerequest(self, p_id, mergerequest_id, **kwargs):
-        return self.git.updatemergerequest(p_id, mergerequest_id, **kwargs)
-
-    def getbranch(self, p_id, branch):
-        return self.git.getbranch(p_id, branch)
-
-    def editissue(self, p_id, issue_id, **kwargs):
-        return self.git.editissue(p_id, issue_id, **kwargs)
-
-    def getrepositorycommit(self, p_id, sha1):
-        return self.git.getrepositorycommit(p_id, sha1)
-
-    def getrepositorycommitdiff(self, p_id, sha1):
-        return self.git. getrepositorycommitdiff(p_id, sha1)
-    # Shit ends here
