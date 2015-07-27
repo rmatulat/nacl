@@ -151,6 +151,7 @@ class GitLapApiCall(object):
         target_branch = mr_details['changes']['target_branch']
 
         # Checkout the branches
+        ngit.git(['fetch', 'origin'])
         ngit.git(['checkout', '-b', 'tmp_' + source_branch, 'origin/' + source_branch])
 
         ngit.git(['checkout', '-b', 'tmp_' + target_branch, 'origin/' + target_branch])
