@@ -16,7 +16,10 @@ class GitLapApiCall(Gitlab):
 
     def __init__(self):
         self.config = nacl.fileutils.get_users_nacl_conf()
-        super(GitLapApiCall, self).__init__(self.config['gitapiserver'], token=self.config['gitapitoken'])
+        super(GitLapApiCall, self).__init__(
+            self.config['gitapiserver'],
+            token=self.config['gitapitoken']
+        )
 
     def get_project_id(self):
         """ returns a gitlab Project ID """
@@ -51,9 +54,11 @@ class GitLapApiCall(Gitlab):
         p_id = self.get_project_id()
         mergerequests = self.getmergerequests(p_id)
         for mergerequest in mergerequests:
-            if mergerequest['state'] == 'closed' or mergerequest['state'] == 'merged':
+            if mergerequest['state'] == 'closed' or \
+               mergerequest['state'] == 'merged':
                 continue
-            if mergerequest['source_branch'] == sourcebranch and mergerequest['target_branch'] == targetbranch:
+            if mergerequest['source_branch'] == sourcebranch and \
+               mergerequest['target_branch'] == targetbranch:
                 return False
 
         return True
@@ -129,8 +134,10 @@ class GitLapApiCall(Gitlab):
         """ Gets details of a mergerequest """
         values = {}
         p_id = self.get_project_id()
-        values['changes'] = self.getmergerequestchanges(p_id, mergerequest_id)
-        values['comments'] = self.getmergerequestcomments(p_id, mergerequest_id)
+        values['changes'] = self.getmergerequestchanges(
+            p_id, mergerequest_id)
+        values['comments'] = self.getmergerequestcomments(
+            p_id, mergerequest_id)
         return values
 
     def mr_is_mergeable(self, mergerequest_id=None):
