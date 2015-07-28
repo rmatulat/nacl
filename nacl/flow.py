@@ -34,7 +34,8 @@ class NaclFlow(object):
                 print(color('GREEN', "STATE: " + issue['state']))
                 print(color('INFO', "AUTHOR: " + issue['author']['name']))
                 if issue['assignee']:
-                    print(color('GREEN', "ASSIGNEE: " + issue['assignee']['name']))
+                    print(color(
+                        'GREEN', "ASSIGNEE: " + issue['assignee']['name']))
                 print("-") * 80
         else:
             print(color('INFO', 'No issues found'))
@@ -58,7 +59,8 @@ class NaclFlow(object):
                 print(color('GREEN', "STATE: " + issue['state']))
                 print(color('INFO', "AUTHOR: " + issue['author']['name']))
                 if issue['assignee']:
-                    print(color('GREEN', "ASSIGNEE: " + issue['assignee']['name']))
+                    print(color(
+                        'GREEN', "ASSIGNEE: " + issue['assignee']['name']))
                 print("-") * 80
         else:
             print(color('INFO', 'No issues found'))
@@ -90,7 +92,10 @@ class NaclFlow(object):
             elif ret_val['state'] == 'reopened':
                 print(color('GREEN', "Issue {0} reopened").format(issue_id))
             else:
-                print(color('FAIL', "Issue {0} has state: {1}").format(issue_id, ret_val['state']))
+                print(color(
+                    'FAIL',
+                    "Issue {0} has state: {1}").
+                    format(issue_id, ret_val['state']))
         else:
             print(color('WARNING', "Issue ID must be provided and an integer"))
 
@@ -110,7 +115,9 @@ class NaclFlow(object):
             sys.exit(1)
 
         if not git.branch_is_clean():
-            print(color('WARNING', "Your branch is not clean. Please commit your changes first."))
+            print(color(
+                'WARNING',
+                "Your branch is not clean. Please commit your changes first."))
             sys.exit(1)
 
         p_id = self.api.get_project_id()
@@ -124,7 +131,10 @@ class NaclFlow(object):
             sys.exit(1)
 
         if issue['project_id'] != p_id:
-            print(color('WARNING', "The issue ID do not correspond to the current git repository/project"))
+            print(color(
+                'WARNING',
+                "The issue ID do not correspond to the current " +
+                "git repository/project"))
             sys.exit(1)
 
         # the workflow itself:
@@ -136,7 +146,10 @@ class NaclFlow(object):
         """ Commit the patch and provide a mergerequest """
 
         if git.get_current_branch() == "master":
-            print(color('WARNING', "You can not open a mergerequest from your local master branch.\nPlease switch to your issue branch!"))
+            print(color(
+                'WARNING',
+                "You can not open a mergerequest from your " +
+                "local master branch.\nPlease switch to your issue branch!"))
             sys.exit(1)
 
         if not git.branch_is_clean():
@@ -164,7 +177,10 @@ class NaclFlow(object):
         sha_is_on_remote = git.is_commit_on_remote(last_local_sha)
 
         if sha_is_on_remote:
-            print(color('WARNING', "Your local commit is already in the remote master branch.\nAborting!"))
+            print(color(
+                'WARNING',
+                "Your local commit is already in the remote master " +
+                "branch.\nAborting!"))
             sys.exit(1)
 
         # Step 2: Check whether we have to push our local changes to the remote
@@ -177,19 +193,26 @@ class NaclFlow(object):
         print("Branch: " + color('GREEN', sourcebranch))
 
         # First check whether the MR branch exists on the remote
-        sourcebranch_on_remote = self.api.remote_branch_exists(sourcebranch, p_id)
+        sourcebranch_on_remote = self.api.remote_branch_exists(
+            sourcebranch, p_id)
 
         if not sourcebranch_on_remote:
             need_push = True
             # We need to merge the origin/master into our issue branch because
             # of avoiding conflicts in the merge workflow on the origin side.
             try:
-                print(color('INFO', "Try to rebase origin master into " + sourcebranch))
+                print(color(
+                    'INFO',
+                    "Try to rebase origin master into " + sourcebranch))
 
                 git.git(['fetch'])
                 git.git(['rebase', 'origin/master'])
             except ValueError as e:
-                print(color('FAIL', "Merge into {0} failed: {1}").format(sourcebranch, e.message))
+                print(color(
+                    'FAIL',
+                    "Merge into {0} failed: {1}").
+                    format(sourcebranch, e.message))
+
                 git.git(['rebase', '--abort'])
                 print('Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.')
                 print('Then run\n\ngit add <FILE>\n git rebase --continue')
@@ -200,7 +223,10 @@ class NaclFlow(object):
             # Second check whether we have un-pushed local commits.
             # We check the local source branch compared to the remote
             # source branch.
-            unpushed_commits = git.need_pull_push(True, sourcebranch, sourcebranch)
+            unpushed_commits = git.need_pull_push(
+                True,
+                sourcebranch,
+                sourcebranch)
             if unpushed_commits == 2:
                 need_push = True
 
@@ -227,11 +253,17 @@ class NaclFlow(object):
             title = str(mr_text)
         else:
             title = git.git(['log', '--format=%s', '-n', '1'])
-        is_new_mergerequest = self.api.is_mergerequest_new(sourcebranch, targetbranch)
+        is_new_mergerequest = self.api.is_mergerequest_new(
+            sourcebranch, targetbranch)
 
         if is_new_mergerequest:
             print(color('GREEN', "Create a new mergerequest"))
-            self.api.createmergerequest(p_id, sourcebranch, targetbranch, title, assignee_id=assignee_id)
+            self.api.createmergerequest(
+                p_id,
+                sourcebranch,
+                targetbranch,
+                title,
+                assignee_id=assignee_id)
         else:
             print(color('INFO', "Mergerequests exists. Skipping"))
 
@@ -247,14 +279,18 @@ class NaclFlow(object):
         """ Display all open mergerequests of a project """
         mergerequests = self.api.get_all_mergerequests()
         for mergerequest in mergerequests:
-            if not all and mergerequest['state'] == 'closed' or not all and mergerequest['state'] == 'merged':
+            if not all and mergerequest['state'] == 'closed' \
+               or not all and mergerequest['state'] == 'merged':
                 continue
 
             print(color('INFO', "TITLE: " + mergerequest['title']))
             print(color('GREEN', "BRANCH: " + mergerequest['source_branch']))
             print(color('GREEN', "STATE: " + mergerequest['state']))
+
             if mergerequest['assignee']:
-                print(color('GREEN', "ASSIGNEE: " + mergerequest['assignee']['name']))
+                print(color(
+                    'GREEN',
+                    "ASSIGNEE: " + mergerequest['assignee']['name']))
             print(color('GREEN', "ID: " + str(mergerequest['id'])))
             print(color('GREEN', "DATE: " + str(mergerequest['created_at'])))
             print("-") * 80
@@ -293,7 +329,11 @@ class NaclFlow(object):
         do_merge = query_yes_no("Should mergerequest " + mergerequest_id + " be merged?", "no")
 
         if not self.api.is_mergerequest_open(mergerequest_id):
-            print(color('FAIL', "Mergerequest '{0}' already closed? Is there a mergerequest with this ID?").format(mergerequest_id))
+            print(color(
+                'FAIL',
+                "Mergerequest '{0}' already closed? " +
+                "Is there a mergerequest with this ID?").
+                format(mergerequest_id))
             sys.exit(1)
 
         if do_merge:
@@ -302,16 +342,24 @@ class NaclFlow(object):
             if self.api.mr_is_mergeable(mergerequest_id):
                 return_values = self.api.accept_mergerequest(mergerequest_id)
             else:
-                print(color('FAIL', "Mergerequest would not merge into origin/master"))
+                print(color(
+                    'FAIL',
+                    "Mergerequest would not merge into origin/master"))
                 p_id = self.api.get_project_id()
                 self.api.addcommenttomergerequest(p_id, mergerequest_id, 'Could not be merged due to CONFLICTs')
                 sys.exit(1)
 
             if return_values and return_values['state'] == 'merged':
-                print(color('GREEN', "Merge complete. Remove " + return_values['source_branch']))
+                print(color(
+                    'GREEN',
+                    "Merge complete. Remove " +
+                    return_values['source_branch']))
                 git.git(['push', 'origin', '--delete', return_values['source_branch']])
             else:
-                print(color('FAIL', "Mergerequest already closed? Is there a mergerequest with this ID? State: {0}").format(return_values['state']))
+                print(color(
+                    'FAIL',
+                    "Mergerequest already closed? Is there a mergerequest " +
+                    "with this ID? State: {0}").format(return_values['state']))
         else:
             print(color('INFO', "Merge aborted!"))
 
@@ -327,7 +375,10 @@ class NaclFlow(object):
         if details:
             print(color('BOLD', "COMMIT: {0}").format(commit))
             print(color('GREEN', "AUTHOR: {0}").format(details['author_name']))
-            print(color('GREEN', "MESSAGE:\n{0}").format(color("DARKCYAN", details['message'].encode('utf-8'))))
+            print(color(
+                'GREEN',
+                "MESSAGE:\n{0}").
+                format(color("DARKCYAN", details['message'].encode('utf-8'))))
             print(color('GREEN', "DATE: {0}").format(details['created_at']))
         else:
             print(color('FAIL', "Commit not found: {0}").format(commit))

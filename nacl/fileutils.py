@@ -66,5 +66,5 @@ def get_users_nacl_conf():
             user_config = json.load(data_file)
         return user_config
     except:
-        print("[ERROR] ~/.nacl not found")
+        print("[ERROR] ~/.nacl not found or invalid JSON")
         sys.exit(3)
