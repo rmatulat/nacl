@@ -27,10 +27,23 @@ class GitLapApiCall(Gitlab):
             print(color('WARNING', 'Not a git repository'))
             sys.exit(1)
 
+        # We use the gitapiserver as the value to split the remote origin
+        # url, so we can handle origin urls in ssh format as well as in
+        # http format
+        seperator = self.config['gitapiserver']
+        if seperator.startswith('http://'):
+            seperator = seperator[7:]
+        elif seperator.startswith('https://'):
+            seperator = seperator[8:]
+
+        if seperator.endswith('/'):
+            seperator = seperator[:-1]
+
         remote = ngit.git(['config', '--get', 'remote.origin.url'])
-        remote = remote.rstrip().split(':')[1]
+        remote = remote.rstrip().split(seperator)[1]
+
         try:
-            return self.getproject(remote[:-4])['id']
+            return self.getproject(remote[1:-4])['id']
         except:
             print(color('WARNING', 'API Call?'))
             return False
