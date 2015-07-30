@@ -17,7 +17,9 @@ import pprint
 
 def list_git_repositories():
     """ using a list of local git repositories to check whether
-        they have uncommitted changes or not and list them in a pretty way """
+        they have uncommitted changes or not and list them in a pretty way.
+        TODO: This is not testable
+    """
 
     git_repo_list = get_dir_list_from_filesystem('*.git')
 
@@ -33,6 +35,7 @@ def merge_all_repositories():
     """ Merge all repositories at once when origin/master is ahead
         and the repository is clean.
         We will merge into local master!
+        TODO: This is not testable
     """
     git_repo_list = get_dir_list_from_filesystem('*.git')
     for git_repo in git_repo_list:

@@ -26,6 +26,7 @@ def get_remote_url_dict():
     Get a list of all remote repository url (like from an gitlab instance).
     All repositories have to be organized in a group, so that we have a
     starting point to look at.
+    TODO: Make this testable. Currently it's not.
     """
 
     config = nacl.fileutils.get_users_nacl_conf()
@@ -58,5 +59,4 @@ def get_remote_url_dict():
     else:
         print("Git group not found: %s" % config['gitgroup'])
         sys.exit(3)
-
 
