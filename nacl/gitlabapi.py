@@ -21,11 +21,8 @@ class GitLapApiCall(Gitlab):
             token=self.config['gitapitoken']
         )
 
-    def get_project_id(self):
-        """ returns a gitlab Project ID """
-        if not ngit.is_git_repo():
-            print(color('WARNING', 'Not a git repository'))
-            sys.exit(1)
+    def _get_seperator(self):
+        """ Get the seperator for splitting up the remote.origin.url """
 
         # We use the gitapiserver as the value to split the remote origin
         # url, so we can handle origin urls in ssh format as well as in
@@ -38,6 +35,15 @@ class GitLapApiCall(Gitlab):
 
         if seperator.endswith('/'):
             seperator = seperator[:-1]
+        return seperator
+
+    def get_project_id(self):
+        """ returns a gitlab Project ID """
+        if not ngit.is_git_repo():
+            print(color('WARNING', 'Not a git repository'))
+            sys.exit(1)
+
+        seperator = self._get_seperator()
 
         remote = ngit.git(['config', '--get', 'remote.origin.url'])
         remote = remote.rstrip().split(seperator)[1]
@@ -84,9 +90,9 @@ class GitLapApiCall(Gitlab):
 
         mr_details = self.get_mergerequest_details(mergerequest_id)
 
-        if mr_details['changes']:
+        try:
             return bool(mr_details['changes']['state'] == 'opened')
-        else:
+        except KeyError:
             return False
 
     def get_all_issues(self):
@@ -131,7 +137,7 @@ class GitLapApiCall(Gitlab):
         """ Takes a iid and gives the uid back.
             This only works inside a project context, where every issue
             has its own id (iid).
-            This is mainly a workaround for users where they are used to work
+            This is mainly a workaround for users when they are used to work
             with the iid (like on the website) """
         if not iid:
             raise ValueError('iid mus be provided')
@@ -199,11 +205,14 @@ class GitLapApiCall(Gitlab):
             ngit.git(['branch', '-D', 'tmp_' + target_branch])
             return False
 
-    def accept_mergerequest(self, mergerequest_id):
+    def accept_mergerequest(self, mergerequest_id=None):
+        if not mergerequest_id:
+            raise ValueError('mergerequest_id must be provided')
+
         p_id = self.get_project_id()
         return self.acceptmergerequest(p_id, mergerequest_id)
 
-    def remote_branch_exists(self, branch, p_id):
+    def remote_branch_exists(self, branch=None, p_id=None):
         """ Check if branch exits on remote"""
         if branch:
             try:
