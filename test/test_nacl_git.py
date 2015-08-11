@@ -11,6 +11,8 @@ from nacl.git import branch_exist
 from nacl.git import get_last_commit_sha
 from nacl.git import is_commit_on_remote
 from nacl.git import get_current_branch
+from nacl.git import git
+from nacl.git import GitCallError
 
 
 class TestNaclGit(unittest.TestCase):
@@ -94,6 +96,26 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.git', side_effect=["master"])
     def test_get_current_branch(self, mock):
         self.assertEqual(get_current_branch(), "master")
+
+    # git()
+
+    # normal git call
+    @mock.patch('subprocess.Popen.communicate', return_value=('foo', None))
+    @mock.patch('subprocess.Popen.wait', return_value=0)
+    def test_git(self, mock_wait, mock_communicate):
+        self.assertEquals('foo', git(['foo']))
+
+    # raises GitCallError
+    @mock.patch('subprocess.Popen.communicate', return_value=('foo', 'bar'))
+    @mock.patch('subprocess.Popen.wait', return_value=1)
+    def test_raise_git_call_error(self, mock_wait, mock_communicate):
+        self.assertRaises(GitCallError, lambda: git(['foo']))
+
+    # providing an env
+    @mock.patch('subprocess.Popen.communicate', return_value=('foo', None))
+    @mock.patch('subprocess.Popen.wait', return_value=0)
+    def test_git_providing_env(self, mock_wait, mock_communicate):
+        self.assertEquals('foo', git(['foo'], env={'foo': 'bar'}))
 
 if __name__ == '__main__':
     unittest.main()

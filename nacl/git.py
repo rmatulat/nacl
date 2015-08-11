@@ -15,6 +15,10 @@ import nacl.gitapi
 import pprint
 
 
+class GitCallError(Exception):
+    pass
+
+
 def list_git_repositories():
     """ using a list of local git repositories to check whether
         they have uncommitted changes or not and list them in a pretty way.
@@ -24,6 +28,7 @@ def list_git_repositories():
     git_repo_list = get_dir_list_from_filesystem('*.git')
 
     # Some Header
+    # Fix this: Use a decorator for printing out stuff instead
     print("%-50s %-15s %-15s %-15s %s" % ("Directory", "Active Branch", "Status", "Local Master", "All Branches"))
     print("=" * 120)
 
@@ -235,10 +240,10 @@ def git(args, env={}):
 
     p = Popen(['git'] + args, stdout=PIPE, stderr=PIPE, env=env)
     output, err = p.communicate()
-    rc = p.returncode
+    rc = p.wait()
 
     if err and rc != 0:
-        raise ValueError(err)
+        raise GitCallError(err)
     return output
 
 

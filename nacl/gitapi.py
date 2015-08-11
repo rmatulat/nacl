@@ -23,7 +23,7 @@ def clean_up_repositorie(repo_dict, ignore_list):
 
 def get_remote_url_dict():
     """
-    Get a list of all remote repository url (like from an gitlab instance).
+    Get a list of all remote repository urls (like from an gitlab instance).
     All repositories have to be organized in a group, so that we have a
     starting point to look at.
     TODO: Make this testable. Currently it's not.
@@ -45,6 +45,8 @@ def get_remote_url_dict():
             if group['name'] == config['gitgroup']:
                 group_id = group['id']
     except:
+        # Fix this: use decorator and be more precise about what
+        # fails.
         print("[ERROR]: API call failed! Credentials?")
         sys.exit(3)
 
@@ -57,6 +59,7 @@ def get_remote_url_dict():
 
         return clean_up_repositorie(ssh_url_dict, ignore_repositories)
     else:
+        # Fix this, use decorator instead
         print("Git group not found: %s" % config['gitgroup'])
         sys.exit(3)
 

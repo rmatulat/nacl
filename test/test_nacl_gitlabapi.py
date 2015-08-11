@@ -10,7 +10,7 @@ class TestNaclGitLapApiCall(unittest.TestCase):
     """ We are doing some extensive mocking over here. Maybe it is
         because I have wrote crappy code or maybe there is no other way."""
     fake_config = {
-        u'gitapiserver': u'https://gitlab.example.com/',
+        u'gitapiserver': u'http://gitlab.example.com/',
         u'gitapitoken': u'AweSomeToken',
         u'gitgroup': u'saltstack',
         u'githostertype': u'gitlab',
