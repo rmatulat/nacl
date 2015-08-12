@@ -12,6 +12,7 @@ from nacl.helper import color, run, id_generator, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.fileutils import get_users_nacl_conf
 import nacl.gitapi
+from nacl.decorator import Log
 import pprint
 
 
@@ -95,30 +96,45 @@ def merge_git_repo(git_repo_name=None):
         checkout_branch(branch)
 
 
+@Log
 def remote_diff():
     """ Shows the diffs between the local and the origin/master"""
 
+    _ret = []
+
     if not branch_is_clean():
-        print(color('INFO', 'INFO: Uncommitted changes.'))
+        _ret.append(('INFO', 'INFO: Uncommitted changes.'))
 
     git(['fetch'])
     output = git(['diff', 'master', 'origin/master'])
     if git(['diff', 'master', 'origin/master']):
-        print(output)
+        _ret.append(('INFO', output))
     else:
-        print(color('INFO', 'No diffs found'))
+        _ret.append(('INFO', 'No diffs found'))
+
+    return _ret
 
 
+@Log
 def checkout_branch(branch):
+
     print_is_git_repo()
+
+    _ret = []
+
     if branch is None:
         git(['checkout', 'master'])
-        print("Branch: " + color('INFO', get_current_branch()))
+        _ret.append(('INFO', 'Branch: {0}'.format(get_current_branch())))
     elif branch == get_current_branch():
-        print("Already in " + color('INFO', get_current_branch()))
+        _ret.append(('INFO', 'Already in {0}'.format(get_current_branch())))
     else:
-        git(['checkout', branch])
-        print("Branch: " + color('INFO', get_current_branch()))
+        try:
+            git(['checkout', branch])
+            _ret.append(('INFO', 'Branch: {0}'.format(get_current_branch())))
+        except GitCallError as exc:
+            _ret.append(('FAIL', 'Unable to checkout {0} : {1}'.format(branch, exc)))
+
+    return _ret
 
 
 def is_git_repo(dir_name=None):
@@ -129,11 +145,11 @@ def is_git_repo(dir_name=None):
         return os.path.exists(dir_name + '.git')
 
 
+@Log
 def print_is_git_repo():
     """ Print and exit if is no repository """
-    if is_git_repo() is False:
-        sys.stderr.write("No git repository found!\n")
-        sys.exit(1)
+    if not is_git_repo():
+        return [('WARNING', 'No git repository found!', 1)]
 
 
 def get_all_branches():
@@ -150,21 +166,25 @@ def branch_exist(branch):
     return False
 
 
+@Log
 def change_or_create_branch(branch=None):
     """ Either creates (and switches into) a branch or just list branches """
 
+    _ret = []
+
     print_is_git_repo()
     if branch is None:
-        print git(['branch']).rstrip()
+        _ret.append(('INFO', git(['branch']).rstrip()))
     elif branch is not None and branch_exist(branch) is False:
-        print("Creating branch: " + color('INFO', branch))
+        _ret.append(('INFO', 'Creating branch: {0}'.format(branch)))
         git(['branch', '--track', branch, 'origin/master'])
         git(['checkout', branch])
-        print("Switch into: " + color('INFO', get_current_branch()))
+        _ret.append(('INFO', 'Switch into: {0}'.format(get_current_branch())))
     else:
-        print("Branch exists. Change into " + color('INFO', branch) + "\n")
+        _ret.append(('INFO', "Branch exists. Change into {0}".format(branch)))
         git(['checkout', branch])
-        sys.exit(0)
+
+    return _ret
 
 
 def remote_prune():
