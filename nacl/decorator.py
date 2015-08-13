@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Some decorators """
+"""
+Some decorators
+TODO: Move everything to blessings
+SEE: https://pypi.python.org/pypi/blessings
+"""
 
 import pprint
 import sys
 from nacl.helper import color
+from vendor.blessings import Terminal
 
 
 class Log(object):
@@ -40,9 +45,6 @@ class Log(object):
         msgs = self._fn(*args, **kwargs)
 
         if not msgs:
-            # sys.stderr.write(color('FAIL', 'Function {0} returned None'. format(self._fn.__name__)) + '\n')
-            # sys.exit(1)
-
             # If a decorated function returns None than do nothing.
             # (That might be expected behavior)
             return
@@ -59,9 +61,9 @@ class Log(object):
                 pass
 
             if level == 'INFO':
-                sys.stdout.write(color(level, msg) + '\n')
+                sys.stdout.write('[ {0} ] {1}'.format(level, color(level, msg)) + '\n')
             else:
-                sys.stderr.write(color(level, msg) + '\n')
+                sys.stderr.write('[ {0} ] {1}'.format(level, color(level, msg)) + '\n')
 
             if exc:
                 try:
@@ -70,3 +72,46 @@ class Log(object):
                     raise(ValueError('Exit code must be an integer!'))
 
                 sys.exit(exc)
+
+
+class ListLine(object):
+    """
+    Print out a single, pretty line about a single git Repository
+
+    This is only used for nacl-git l: print out a line
+    with information about a repository.
+    There is no general usecase except for this single purpose.
+    So it's nasty...
+    """
+
+    def __init__(self, fn):
+        self._fn = fn
+        self.t = Terminal()
+
+    def __call__(self, *args, **kwargs):
+        _ret = self._fn(*args, **kwargs)
+
+        # colorize status
+        if _ret['status'] == 'Clean':
+            st_level = 'UNDERLINE'
+        else:
+            st_level = 'GREEN'
+
+        # colorize merge_status
+        if _ret['merge_status'] == '(merged)':
+            m_s_level = 'INFO'
+        else:
+            m_s_level = 'FAIL'
+
+        # colorize pull_push
+        if _ret['pull_push'] == "Up-to-date":
+            p_p_level = 'GREEN'
+        else:
+            p_p_level = 'FAIL'
+
+        print(self.t.move_x(0) + color('WARNING', _ret['dir_name']) +
+              self.t.move_x(51) + color('GREEN', _ret['branch']) +
+              self.t.move_x(57) + color(m_s_level, _ret['merge_status']) +
+              self.t.move_x(67) + color(st_level, _ret['status']) +
+              self.t.move_x(83) + color(p_p_level, _ret['pull_push']) +
+              self.t.move_x(99) + color('DARKCYAN', _ret['all_branches']))

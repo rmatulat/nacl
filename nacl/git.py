@@ -12,18 +12,17 @@ from nacl.helper import color, run, id_generator, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.fileutils import get_users_nacl_conf
 import nacl.gitapi
-from nacl.decorator import Log
+from nacl.decorator import Log, ListLine
+from nacl.exceptions import GitCallError
 import pprint
 
 
-class GitCallError(Exception):
-    pass
-
-
+@Log
 def list_git_repositories():
     """ using a list of local git repositories to check whether
         they have uncommitted changes or not and list them in a pretty way.
         TODO: This is not testable
+        TRY: Using a decorator may fix the testability?
     """
 
     git_repo_list = get_dir_list_from_filesystem('*.git')
@@ -33,8 +32,12 @@ def list_git_repositories():
     print("%-50s %-15s %-15s %-15s %s" % ("Directory", "Active Branch", "Status", "Local Master", "All Branches"))
     print("=" * 120)
 
+    if not git_repo_list:
+        return [('WARNING', 'No git repository provided!', 3)]
+
     for git_repo in git_repo_list:
-        check_git_repo(git_repo)
+        os.chdir(git_repo[:-4])
+        pretty_status()
 
 
 def merge_all_repositories():
@@ -103,7 +106,7 @@ def remote_diff():
     _ret = []
 
     if not branch_is_clean():
-        _ret.append(('INFO', 'INFO: Uncommitted changes.'))
+        _ret.append(('INFO', 'Uncommitted changes.'))
 
     git(['fetch'])
     output = git(['diff', 'master', 'origin/master'])
@@ -187,23 +190,19 @@ def change_or_create_branch(branch=None):
     return _ret
 
 
+@Log
 def remote_prune():
     """
     Removes staled remote refs (like old feature branches at the
     remote, that have been merged and deleted)
     """
-    print git(['remote', 'prune', 'origin'])
+    _ret = []
+    output = git(['remote', 'prune', 'origin'])
+    if not output:
+        output = 'Nothing to prune'
+    _ret.append(('INFO', output))
 
-
-def check_git_repo(git_repo_name=None):
-    """ Checks the state of a single git repository """
-
-    if git_repo_name is None:
-        sys.stderr.write("No git repository provided!")
-        sys.exit(3)
-
-    os.chdir(git_repo_name[:-4])
-    pretty_status()
+    return _ret
 
 
 def get_local_url_list():
@@ -306,13 +305,13 @@ def need_pull_push(return_returncode=False, local_branch='master', remote_branch
     # print "BASE: " + base
 
     if local == remote:
-        answer = color('INFO', "Up-to-date")
+        answer = "Up-to-date"
         code = 0
     elif local == base:
-        answer = color('FAIL', "Need to pull")
+        answer = "Need to pull"
         code = 1
     elif remote == base:
-        answer = color('HEADER', "Need to push")
+        answer = "Need to push"
         code = 2
     else:
         answer = "Diverged"
@@ -344,32 +343,32 @@ def is_merged(branch):
 def print_merge_status(branch):
     """ Print out the merge status of branch """
     if is_merged(branch):
-        return color('INFO', "(merged)")
+        return "(merged)"
     else:
-        return color('FAIL', "(unmerged)")
+        return "(unmerged)"
 
 
+@ListLine
 def pretty_status():
     """ Prints out some information about a repository """
-    branch = get_current_branch()
-    status = git(['status', '-s']).rstrip()
-    pull_push = need_pull_push()
-    merge_status = ''
-    all_branches = color('DARKCYAN', ', '.join(get_all_branches()))
+    _ret = {}
+    _ret['branch'] = get_current_branch()
+    _ret['status'] = git(['status', '-s']).rstrip()
+    _ret['pull_push'] = need_pull_push()
+    _ret['merge_status'] = ''
+    _ret['all_branches'] = ', '.join(get_all_branches())
 
     if branch_is_clean():
-        status = color('UNDERLINE', "Clean")
+        _ret['status'] = 'Clean'
     else:
-        status = color('FAIL', status[0:10])
+        _ret['status'] = _ret['status'][0:10]
 
-    if branch != 'master':
-        merge_status = print_merge_status(branch)
-        branch = color('GREEN', branch)
+    if _ret['branch'] != 'master':
+        _ret['merge_status'] = print_merge_status(_ret['branch'])
 
-    dir_name = color('WARNING', run(['pwd']).rstrip())
+    _ret['dir_name'] = run(['pwd']).rstrip()
 
-    print("%-59s %-13s %1s %-23s %-24s %s" % (dir_name, branch, merge_status, status, pull_push, all_branches))
-    pass
+    return _ret
 
 
 def initial_clone(repository=None, destination=None, proxy=None):

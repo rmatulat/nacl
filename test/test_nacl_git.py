@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 import mock
+import pprint
 from nacl.git import branch_is_clean
 from nacl.git import need_pull_push
 from nacl.git import is_merged
@@ -12,7 +13,9 @@ from nacl.git import get_last_commit_sha
 from nacl.git import is_commit_on_remote
 from nacl.git import get_current_branch
 from nacl.git import git
-from nacl.git import GitCallError
+from nacl.exceptions import GitCallError
+from nacl.git import list_git_repositories
+from nacl.git import remote_diff
 
 
 class TestNaclGit(unittest.TestCase):
@@ -116,6 +119,45 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('subprocess.Popen.wait', return_value=0)
     def test_git_providing_env(self, mock_wait, mock_communicate):
         self.assertEquals('foo', git(['foo'], env={'foo': 'bar'}))
+
+    # list_git_repositories (partly)
+    #
+    # THIS IS SPECIAL, AND I HAVE TO NOTE IT TO MYSELF:
+    # It's about testing a decorated function.
+    #
+    # First: Note list_git_repositories._fn()
+    # We are calling the origin func() that is stored in the decorators object
+    # variable _fn. We are NOT calling list_git_repositories() as it
+    # will be decorated at execution with all the decoration actually done.
+    #
+    # NEXT GOTCHA, THAT COSTS ME HOURS TO FIGURE OUT:
+    # Where to patch:
+    # http://www.voidspace.org.uk/python/mock/patch.html#where-to-patch
+    #
+    # get_dir_list_from_filesystem is located in nacl.fileutils.
+    # BUT:
+    # It is imported in nacl.git like so:
+    # from nacl.fileutils import get_dir_list_from_filesystem
+    #
+    # So now get_dir_list_from_filesystem has to be mocked in nacl.git, because
+    # it is imported into it!
+    @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=[])
+    def test_list_git_repositories(self, mock_fu):
+        self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_git_repositories._fn())
+
+    # remote_diff()
+
+    # branch is not clean and no diffs found
+    @mock.patch('nacl.git.branch_is_clean', return_value=False)
+    @mock.patch('nacl.git.git', return_value=None)
+    def test_remote_diff_branch_not_clean(self, mock_branch, mock_git):
+        self.assertEquals([('INFO', 'Uncommitted changes.'), ('INFO', 'No diffs found')], remote_diff._fn())
+
+    # branch is clean and pseudo diffs found
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.git', return_value='foo')
+    def test_remote_diff_branch_clean(self, mock_branch, mock_git):
+        self.assertEquals([('INFO', 'foo')], remote_diff._fn())
 
 if __name__ == '__main__':
     unittest.main()
