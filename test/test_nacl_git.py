@@ -16,6 +16,7 @@ from nacl.git import git
 from nacl.exceptions import GitCallError
 from nacl.git import list_git_repositories
 from nacl.git import remote_diff
+from nacl.git import checkout_branch
 
 
 class TestNaclGit(unittest.TestCase):
@@ -158,6 +159,50 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.git', return_value='foo')
     def test_remote_diff_branch_clean(self, mock_branch, mock_git):
         self.assertEquals([('INFO', 'foo')], remote_diff._fn())
+
+    # checkout_branch()
+    # First Check: branch is not provided
+    @mock.patch('nacl.git.git', return_value='bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_checkout_branch_branch_is_none(self,
+                                            mock_git,
+                                            mock_gcb,
+                                            mock_pigr):
+        self.assertEqual([('INFO', 'Branch: foo')], checkout_branch._fn(None))
+
+    # 2nd Check: branch is provided and already active
+    @mock.patch('nacl.git.git', return_value='bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_checkout_branch_branch_is_active(self,
+                                              mock_git,
+                                              mock_gcb,
+                                              mock_pigr):
+        self.assertEqual([('INFO', 'Already in foo')], checkout_branch._fn('foo'))
+
+    # 3rd Check: branch is provided and NOT active
+    @mock.patch('nacl.git.git', return_value='bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_checkout_branch_branch_is_not_active(self,
+                                                  mock_git,
+                                                  mock_gcb,
+                                                  mock_pigr):
+        self.assertEqual([('INFO', 'Switch to branch: foo')], checkout_branch._fn('bar'))
+
+    def git_side_effect(args):
+        raise ValueError
+
+    # 4th Check: raise Exception
+    @mock.patch('nacl.git.git', side_effect=git_side_effect)
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_checkout_branch_raises(self,
+                                    mock_git,
+                                    mock_gcb,
+                                    mock_pigr):
+        self.assertRaises(ValueError, lambda: checkout_branch._fn('bar'))
 
 if __name__ == '__main__':
     unittest.main()
