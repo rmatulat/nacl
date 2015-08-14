@@ -17,6 +17,11 @@ from nacl.exceptions import GitCallError
 from nacl.git import list_git_repositories
 from nacl.git import remote_diff
 from nacl.git import checkout_branch
+from nacl.git import change_or_create_branch
+from nacl.git import merge_git_repo
+from nacl.git import remote_prune
+from nacl.git import pretty_status
+from nacl.git import print_merge_status
 
 
 class TestNaclGit(unittest.TestCase):
@@ -137,11 +142,17 @@ class TestNaclGit(unittest.TestCase):
     #
     # get_dir_list_from_filesystem is located in nacl.fileutils.
     # BUT:
-    # It is imported in nacl.git like so:
+    # It is imported in nacl.git like this:
     # from nacl.fileutils import get_dir_list_from_filesystem
     #
     # So now get_dir_list_from_filesystem has to be mocked in nacl.git, because
     # it is imported into it!
+    #
+    # Note:
+    # Upcoming tests mainly test strings (say: messages) that are returned by
+    # the functions under tests.
+    # When changing the messages one has to change the tests as well!
+
     @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=[])
     def test_list_git_repositories(self, mock_fu):
         self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_git_repositories._fn())
@@ -203,6 +214,191 @@ class TestNaclGit(unittest.TestCase):
                                     mock_gcb,
                                     mock_pigr):
         self.assertRaises(ValueError, lambda: checkout_branch._fn('bar'))
+
+    # change_or_create_branch()
+
+    # No branch provided
+    @mock.patch('nacl.git.git', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_change_or_create_branch(self, mock_git, mock_pigr):
+        self.assertEquals([('INFO', 'foo')], change_or_create_branch._fn(None))
+
+    # branch is provided but doesn't exists
+    @mock.patch('nacl.git.git', return_value='bar')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    @mock.patch('nacl.git.branch_exist', return_value=False)
+    def test_change_or_create_branch_branch_not_exists(self,
+                                                       mock_git,
+                                                       mock_pigr,
+                                                       mock_be):
+        self.assertEquals([('INFO', 'Creating branch: bar'), ('INFO', 'Switch into: bar')],
+                          change_or_create_branch._fn('bar'))
+
+    # branch is provided but doesn't exists
+    @mock.patch('nacl.git.git', return_value='bar')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    @mock.patch('nacl.git.branch_exist', return_value=True)
+    def test_change_or_create_branch_branch_exists(self,
+                                                   mock_git,
+                                                   mock_pigr,
+                                                   mock_be):
+        self.assertEquals([('INFO', 'Branch exists. Change into bar')],
+                          change_or_create_branch._fn('bar'))
+
+    # merge_git_repo()
+
+    # Test git_repo_name is provided and branch is dirty
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.branch_is_clean', return_value=False)
+    def test_merge_git_repo_branch_is_dirty(self,
+                                            mock_bic,
+                                            mock_gcb,
+                                            mock_getcwd,
+                                            mock_chdir):
+        self.assertEquals([('INFO', 'Checking: /foo/bar'), ('INFO', 'Uncommitted changes, skipping...')],
+                          merge_git_repo._fn('bar'))
+
+    # Branch is clean and needs pull, master is active
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='master')
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.git', return_value='baz')
+    @mock.patch('nacl.git.need_pull_push', return_value=1)
+    def test_merge_git_repo_branch_is_clean(self,
+                                            mock_npp,
+                                            mock_git,
+                                            mock_bic,
+                                            mock_gcb,
+                                            mock_getcwd,
+                                            mock_chdir):
+        self.assertEquals([('INFO', 'Checking: /foo/bar'),
+                           ('INFO', 'Need merge! '),
+                           ('INFO', 'Try to merge Branch: master in /foo/bar'),
+                           ('INFO', 'Start merge...'),
+                           ('INFO', 'Merge complete!')],
+                          merge_git_repo._fn('bar'))
+
+    # Branch is clean and needs pull, master is NOT active
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.git', return_value='baz')
+    @mock.patch('nacl.git.need_pull_push', return_value=1)
+    @mock.patch('nacl.git.checkout_branch', return_value=None)
+    def test_merge_git_repo_branch_is_clean_not_master(self,
+                                                       mock_cb,
+                                                       mock_npp,
+                                                       mock_git,
+                                                       mock_bic,
+                                                       mock_gcb,
+                                                       mock_getcwd,
+                                                       mock_chdir):
+        self.assertEquals([('INFO', 'Checking: /foo/bar'),
+                           ('INFO', 'Checkout master'),
+                           ('INFO', 'Need merge! '),
+                           ('INFO', 'Try to merge Branch: master in /foo/bar'),
+                           ('INFO', 'Start merge...'),
+                           ('INFO', 'Merge complete!'),
+                           ('INFO', 'Switch back')],
+                          merge_git_repo._fn('bar'))
+
+    # Branch is clean but DON'T needs pull, master is NOT active
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.git', return_value='baz')
+    @mock.patch('nacl.git.need_pull_push', return_value=0)
+    @mock.patch('nacl.git.checkout_branch', return_value=None)
+    def test_merge_git_repo_branch_no_pull_not_master(self,
+                                                      mock_cb,
+                                                      mock_npp,
+                                                      mock_git,
+                                                      mock_bic,
+                                                      mock_gcb,
+                                                      mock_getcwd,
+                                                      mock_chdir):
+        self.assertEquals([('INFO', 'Checking: /foo/bar'),
+                           ('INFO', 'Checkout master'),
+                           ('INFO', 'Nothing to do in master... Switch back')],
+                          merge_git_repo._fn('bar'))
+
+    # Raise Exception
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    @mock.patch('nacl.git.get_current_branch', return_value='master')
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.git', side_effect=git_side_effect)
+    @mock.patch('nacl.git.need_pull_push', return_value=1)
+    @mock.patch('nacl.git.checkout_branch', return_value=None)
+    def test_merge_git_repo_branch_raise(self,
+                                         mock_cb,
+                                         mock_npp,
+                                         mock_git,
+                                         mock_bic,
+                                         mock_gcb,
+                                         mock_getcwd,
+                                         mock_chdir):
+        self.assertRaises(ValueError, lambda: merge_git_repo._fn('bar'))
+
+    # remote_prune()
+    @mock.patch('nacl.git.git', return_value='')
+    def test_remote_prune_output_none(self, mock):
+        self.assertEquals([('INFO', 'Nothing to prune')], remote_prune._fn())
+
+    @mock.patch('nacl.git.git', side_effect=git_side_effect)
+    def test_remote_prune_raises(self, mock):
+        self.assertRaises(ValueError, remote_prune._fn)
+
+    # pretty_status()
+    # Branch is clean
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.git', return_value='M status')
+    @mock.patch('nacl.git.need_pull_push', return_value='Yes')
+    @mock.patch('nacl.git.get_all_branches', return_value=['a', 'b'])
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.print_merge_status', return_value='baz')
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    def test_pretty_status(self,
+                           mock_getcwd,
+                           mock_ms,
+                           mock_bic,
+                           mock_gab,
+                           mock_npp,
+                           mock_git,
+                           mock_gcb):
+        self.assertEquals({'status': 'Clean', 'dir_name': '/foo/bar', 'pull_push': 'Yes', 'all_branches': 'a, b', 'branch': 'foo', 'merge_status': 'baz'}, pretty_status._fn())
+
+    # Branch is not clean!
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.git', return_value='M status')
+    @mock.patch('nacl.git.need_pull_push', return_value='Yes')
+    @mock.patch('nacl.git.get_all_branches', return_value=['a', 'b'])
+    @mock.patch('nacl.git.branch_is_clean', return_value=False)
+    @mock.patch('nacl.git.print_merge_status', return_value='baz')
+    @mock.patch('os.getcwd', return_value='/foo/bar')
+    def test_pretty_status_2(self,
+                             mock_getcwd,
+                             mock_ms,
+                             mock_bic,
+                             mock_gab,
+                             mock_npp,
+                             mock_git,
+                             mock_gcb):
+        self.assertEquals({'status': 'M status', 'dir_name': '/foo/bar', 'pull_push': 'Yes', 'all_branches': 'a, b', 'branch': 'foo', 'merge_status': 'baz'}, pretty_status._fn())
+
+    # print_merge_status()
+    @mock.patch('nacl.git.is_merged', return_value=True)
+    def test_print_merge_status_1(self, mock):
+        self.assertEquals('(merged)', print_merge_status('foo'))
+
+    @mock.patch('nacl.git.is_merged', return_value=False)
+    def test_print_merge_status_2(self, mock):
+        self.assertEquals('(unmerged)', print_merge_status('foo'))
 
 if __name__ == '__main__':
     unittest.main()

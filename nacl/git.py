@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """ Handles git related stuff """
-import sys
+# import sys
 import os.path
 import os
-from subprocess import call
+# from subprocess import call
 from subprocess import Popen, PIPE
 from pprint import pprint
-from nacl.helper import color, run, id_generator, merge_two_dicts
+from nacl.helper import color, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.fileutils import get_users_nacl_conf
 import nacl.gitapi
@@ -56,47 +56,57 @@ def merge_single_repository():
     merge_git_repo()
 
 
+@Log
 def merge_git_repo(git_repo_name=None):
     """ Do the heavy lifting of a merge """
+
+    _ret = []
 
     if git_repo_name:
         os.chdir(git_repo_name[:-4])
 
     branch = get_current_branch()
-    dir_name = color('WARNING', run(['pwd']).rstrip())
+    dir_name = os.getcwd()
 
-    print(color("INFO", "Checking: ") + dir_name)
+    _ret.append(("INFO", "Checking: {0}".format(dir_name)))
 
     # First check if there are any uncommitted changes.
     # In this case skip merging!
     if not branch_is_clean():
-        print(color('INFO', 'Uncommitted changes, skipping...'))
-        return True
+        _ret.append(('INFO', 'Uncommitted changes, skipping...'))
+        return _ret
     else:
         pass
 
     # We only merge into the local master branch
     if branch != 'master':
-        print(color('FAIL', 'Checkout master'))
+        _ret.append(('INFO', 'Checkout master'))
         checkout_branch('master')
 
     if need_pull_push(return_returncode=True) == 1:
-        print(color("FAIL", "Need merge! ") + color("INFO", "Try to merge Branch: ") + color("GREEN", "master") + " in " + dir_name)
+        _ret.append(("INFO", "Need merge! "))
+        _ret.append(("INFO", "Try to merge Branch: master in {0}".format(dir_name)))
     else:
-        # Switch back to prvevious branch
+        # Switch back to previous branch
         if branch != 'master':
-            print(color('INFO', 'Nothing to do in master... Switch back'))
+            _ret.append(('INFO', 'Nothing to do in master... Switch back'))
             checkout_branch(branch)
-        return True
+        return _ret
 
-    git(['fetch'])
-    print(color("GREEN", "Start merge..."))
-    git(['merge', '--ff-only', 'origin/master'])
+    try:
+        git(['fetch'])
+        _ret.append(("INFO", "Start merge..."))
+        git(['merge', '--ff-only', 'origin/master'])
+        _ret.append(('INFO', 'Merge complete!'))
+    except GitCallError as e:
+        _ret.append(('INFO', 'Merge failed: {0}'.format(e)))
 
     # Switch back to prvevious branch
     if branch != 'master':
-        print(color('INFO', 'Switch back'))
+        _ret.append(('INFO', 'Switch back'))
         checkout_branch(branch)
+
+    return _ret
 
 
 @Log
@@ -197,7 +207,13 @@ def remote_prune():
     remote, that have been merged and deleted)
     """
     _ret = []
-    output = git(['remote', 'prune', 'origin'])
+    try:
+        output = git(['remote', 'prune', 'origin'])
+        print(output)
+    except GitCallError as e:
+        _ret.append(('FAIL', 'Prune failed: {0}'.format(e)))
+        return _ret
+
     if not output:
         output = 'Nothing to prune'
     _ret.append(('INFO', output))
@@ -366,7 +382,7 @@ def pretty_status():
     if _ret['branch'] != 'master':
         _ret['merge_status'] = print_merge_status(_ret['branch'])
 
-    _ret['dir_name'] = run(['pwd']).rstrip()
+    _ret['dir_name'] = os.getcwd()
 
     return _ret
 

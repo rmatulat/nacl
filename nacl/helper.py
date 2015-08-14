@@ -10,26 +10,6 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def run(args, env=None):
-    """ @args: list
-        @env: dict
-        Calling subprocesses
-    """
-    if env is not None:
-        env = env
-    else:
-        env = {}
-
-    p = Popen(args, stdout=PIPE, stderr=PIPE, env=env)
-    output, err = p.communicate()
-
-    if err:
-        print("ERROR: " + err)
-        print(Popen(['pwd']))
-        raise Exception('git call should not return errors')
-    return output
-
-
 def color(level, string):
     """ Colorize strings """
     colors = {
