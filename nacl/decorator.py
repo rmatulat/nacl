@@ -11,6 +11,7 @@ import pprint
 import sys
 from nacl.helper import color
 from vendor.blessings import Terminal
+import functools
 
 
 class Log(object):
@@ -53,17 +54,19 @@ class Log(object):
 
             # we distinguish between tuples with an 3rd argument (sys.exit() exitcode)
             # and no tuples without an exitcode
+            show_lvl = 'INFO'
             if 2 == len(msg):
                 level, msg = msg
             elif 3 == len(msg):
                 level, msg, exc = msg
+                show_lvl = 'WARN'
             else:
                 pass
 
             if level == 'INFO':
-                sys.stdout.write('[ {0} ] {1}'.format(level, color(level, msg)) + '\n')
+                sys.stdout.write('[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
             else:
-                sys.stderr.write('[ {0} ] {1}'.format(level, color(level, msg)) + '\n')
+                sys.stderr.write('[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
 
             if exc:
                 try:
@@ -72,6 +75,16 @@ class Log(object):
                     raise(ValueError('Exit code must be an integer!'))
 
                 sys.exit(exc)
+
+    def __get__(self, instance, instancetype):
+        """Implement the descriptor protocol to make decorating instance
+        method possible.
+        See : http://stackoverflow.com/questions/5469956/python-decorator-self-is-mixed-up
+        """
+
+        # Return a partial function with the first argument is the instance
+        #   of the class decorated.
+        return functools.partial(self.__call__, instance)
 
 
 class ListLine(object):
