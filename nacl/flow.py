@@ -3,11 +3,9 @@
 #
 # """ regarding git-flow """
 import nacl.gitlabapi as api
-from nacl.helper import color
 from nacl.helper import query_yes_no
 import nacl.git as git
 from nacl.decorator import Log
-import sys
 import pprint
 
 
