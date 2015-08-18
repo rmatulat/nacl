@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import random
 import string
-from subprocess import Popen, PIPE
 import sys
 
 

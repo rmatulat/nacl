@@ -61,12 +61,12 @@ class Log(object):
                 level, msg, exc = msg
                 show_lvl = 'WARN'
             else:
-                pass
+                raise ValueError('tuble must contain 2 or 3 elements!')
 
             if level == 'INFO':
-                sys.stdout.write('[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
+                sys.stdout.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
             else:
-                sys.stderr.write('[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
+                sys.stderr.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
 
             if exc:
                 try:
@@ -104,7 +104,9 @@ class ListLine(object):
     def __call__(self, *args, **kwargs):
         _ret = self._fn(*args, **kwargs)
 
-        # colorize status
+        if not _ret:
+            return
+
         if _ret['status'] == 'Clean':
             st_level = 'UNDERLINE'
         else:
@@ -122,9 +124,13 @@ class ListLine(object):
         else:
             p_p_level = 'FAIL'
 
-        print(self.t.move_x(0) + color('WARNING', _ret['dir_name']) +
-              self.t.move_x(51) + color('GREEN', _ret['branch']) +
-              self.t.move_x(57) + color(m_s_level, _ret['merge_status']) +
-              self.t.move_x(67) + color(st_level, _ret['status']) +
-              self.t.move_x(83) + color(p_p_level, _ret['pull_push']) +
-              self.t.move_x(99) + color('DARKCYAN', _ret['all_branches']))
+        # sys.stdout.write(
+        s = u'{0}{1}{2}{3}{4}{5}\n'.format(
+            self.t.move_x(0) + color('WARNING', _ret['dir_name']),
+            self.t.move_x(51) + color('GREEN', _ret['branch']),
+            self.t.move_x(57) + color(m_s_level, _ret['merge_status']),
+            self.t.move_x(67) + color(st_level, _ret['status']),
+            self.t.move_x(83) + color(p_p_level, _ret['pull_push']),
+            self.t.move_x(99) + color('DARKCYAN', _ret['all_branches'])).encode()
+
+        sys.stdout.write(s.decode('utf-8'))
