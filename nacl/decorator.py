@@ -14,6 +14,63 @@ from vendor.blessings import Terminal
 import functools
 
 
+def log(func):
+    """
+    Log decorator implemented as function
+
+    This code was added after class Log() because of problems during
+    unittesting nacl.flow.NaclFlow.
+    The problem: The discriptor protocol implementation with __get__() and
+    functools.partials leads to problems in addressing Log._fn() under
+    test, because self is masked with the decorated class functions
+    self (of class NaclFLow). So we are unable to call the function under
+    test undecorated.
+
+    We have to do further tests on that topic and at least choose only
+    one implementation.
+    """
+
+    def wrapper(*args, **kwargs):
+        level = 'INFO'
+        msg = 'Not set'
+        exc = None
+        msgs = func(*args, **kwargs)
+
+        if not msgs:
+            # If a decorated function returns None than do nothing.
+            # (That might be expected behavior)
+            return
+
+        for msg in msgs:
+
+            # we distinguish between tuples with an 3rd argument (sys.exit() exitcode)
+            # and no tuples without an exitcode
+            show_lvl = 'INFO'
+            if 2 == len(msg):
+                level, msg = msg
+            elif 3 == len(msg):
+                level, msg, exc = msg
+                show_lvl = 'WARN'
+            else:
+                raise ValueError('tuble must contain 2 or 3 elements!')
+
+            if level == 'INFO':
+                sys.stdout.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
+            else:
+                sys.stderr.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
+
+            if exc:
+                try:
+                    exc = int(exc)
+                except:
+                    raise(ValueError('Exit code must be an integer!'))
+
+                sys.exit(exc)
+
+    wrapper._fn = func
+    return wrapper
+
+
 class Log(object):
     """
     Log decorator
@@ -33,7 +90,7 @@ class Log(object):
     will be left with sys.exit()
 
     By now we just log to the commandline, but it is possible
-    to exrend this later to log to files etc.
+    to extend this later to log to files etc.
 
     """
     def __init__(self, fn):

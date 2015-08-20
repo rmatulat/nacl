@@ -5,7 +5,7 @@
 import nacl.gitlabapi as api
 from nacl.helper import query_yes_no
 import nacl.git as git
-from nacl.decorator import Log
+from nacl.decorator import Log, log
 import pprint
 
 
@@ -14,7 +14,7 @@ class NaclFlow(object):
     def __init__(self):
         self.api = api.GitLapApiCall()
 
-    @Log
+    @log
     def get_all_issues(self, all=None):
         """ Gets all issues of a project """
 
@@ -23,7 +23,8 @@ class NaclFlow(object):
         try:
             issues = self.api.get_all_issues()
         except TypeError as e:
-            _ret.append(('FAIL', 'Project ID not found. Is remote origin a gitlab repo? ({0})').format(e.message), 1)
+            _ret.append(('FAIL', 'Project ID not found. Is remote origin a gitlab repo? ({0})'.format(e.message), 1))
+            return _ret
 
         if issues:
             for issue in issues:
@@ -42,7 +43,7 @@ class NaclFlow(object):
         else:
             return [('INFO', 'No issues found')]
 
-    @Log
+    @log
     def get_my_issues(self, all=None):
         """ List all my open issues """
         issues = self.api.get_my_issues()

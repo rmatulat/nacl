@@ -8,7 +8,7 @@ from io import StringIO
 import sys
 import mock
 import pprint
-from nacl.decorator import Log, ListLine
+from nacl.decorator import Log, ListLine, log
 
 
 class TestLog(unittest.TestCase):
@@ -83,6 +83,72 @@ class TestLog(unittest.TestCase):
     def test_Log_g(self, mock):
         """ We will just return, if there are no messages passed """
         @Log
+        def dummy():
+            return [('a')]
+        self.assertRaises(ValueError, dummy)
+
+    # Test log()
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_log_a(self, mock):
+        @log
+        def dummy():
+            return [('INFO', 'foo')]
+        dummy()
+        output = mock.getvalue()
+        self.assertEqual(u'[ INFO ] \x1b[94mfoo\x1b[0m\n', output)
+
+    @mock.patch('sys.exit', return_value=None)
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_log_b(self, mock_stdout, mock):
+        @log
+        def dummy():
+            return [('INFO', 'foo', 1)]
+
+        dummy()
+        output = mock_stdout.getvalue()
+        self.assertEqual(u'[ WARN ] \x1b[94mfoo\x1b[0m\n', output)
+
+    @mock.patch('sys.exit', return_value=None)
+    def test_log_c(self, mock):
+        @log
+        def dummy():
+            return [('INFO', 'foo', 'foo')]
+
+        self.assertRaises(ValueError, dummy)
+
+    @mock.patch('sys.stderr', new_callable=StringIO)
+    def test_log_d(self, mock):
+        @log
+        def dummy():
+            return [('FAIL', 'foo')]
+        dummy()
+        output = mock.getvalue()
+        self.assertEqual(u'[ INFO ] \x1b[91mfoo\x1b[0m\n', output)
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_log_e(self, mock):
+        """ We will just return, if there are no messages passed """
+        @log
+        def dummy():
+            return []
+        dummy()
+        output = mock.getvalue()
+        self.assertEqual(u'', output)
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_log_f(self, mock):
+        """ tuble with an int has no attribute len(), so we
+            fail here with an TypeError"""
+        @log
+        def dummy():
+            return [(1)]
+        self.assertRaises(TypeError, dummy)
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_log_g(self, mock):
+        """ We will just return, if there are no messages passed """
+        @log
         def dummy():
             return [('a')]
         self.assertRaises(ValueError, dummy)
