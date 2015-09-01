@@ -203,17 +203,7 @@ class TestNaclGit(unittest.TestCase):
         self.assertEqual([('INFO', 'Switch to branch: foo')], checkout_branch._fn('bar'))
 
     def git_side_effect(args):
-        raise ValueError
-
-    # 4th Check: raise Exception
-    @mock.patch('nacl.git.git', side_effect=git_side_effect)
-    @mock.patch('nacl.git.get_current_branch', return_value='foo')
-    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
-    def test_checkout_branch_raises(self,
-                                    mock_git,
-                                    mock_gcb,
-                                    mock_pigr):
-        self.assertRaises(ValueError, lambda: checkout_branch._fn('bar'))
+        raise GitCallError
 
     # change_or_create_branch()
 
@@ -327,7 +317,7 @@ class TestNaclGit(unittest.TestCase):
                            ('INFO', 'Nothing to do in master... Switch back')],
                           merge_git_repo._fn('bar'))
 
-    # Raise Exception
+    # Raise Exception output test
     @mock.patch('os.chdir', return_value=True)
     @mock.patch('os.getcwd', return_value='/foo/bar')
     @mock.patch('nacl.git.get_current_branch', return_value='master')
@@ -335,24 +325,23 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.git', side_effect=git_side_effect)
     @mock.patch('nacl.git.need_pull_push', return_value=1)
     @mock.patch('nacl.git.checkout_branch', return_value=None)
-    def test_merge_git_repo_branch_raise(self,
-                                         mock_cb,
-                                         mock_npp,
-                                         mock_git,
-                                         mock_bic,
-                                         mock_gcb,
-                                         mock_getcwd,
-                                         mock_chdir):
-        self.assertRaises(ValueError, lambda: merge_git_repo._fn('bar'))
+    def test_merge_git_repo_branch_raise_output(self,
+                                                mock_cb,
+                                                mock_npp,
+                                                mock_git,
+                                                mock_bic,
+                                                mock_gcb,
+                                                mock_getcwd,
+                                                mock_chdir):
+        self.assertEquals([('INFO', 'Checking: /foo/bar'),
+                           ('INFO', 'Need merge! '),
+                           ('INFO', 'Try to merge Branch: master in /foo/bar'),
+                           ('INFO', 'Merge failed: ')], merge_git_repo._fn('bar'))
 
     # remote_prune()
     @mock.patch('nacl.git.git', return_value='')
     def test_remote_prune_output_none(self, mock):
         self.assertEquals([('INFO', 'Nothing to prune')], remote_prune._fn())
-
-    @mock.patch('nacl.git.git', side_effect=git_side_effect)
-    def test_remote_prune_raises(self, mock):
-        self.assertRaises(ValueError, remote_prune._fn)
 
     # pretty_status()
     # Branch is clean

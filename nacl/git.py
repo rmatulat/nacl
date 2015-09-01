@@ -44,7 +44,8 @@ def merge_all_repositories():
     """ Merge all repositories at once when origin/master is ahead
         and the repository is clean.
         We will merge into local master!
-        TODO: This is not testable
+        merge_git_repo is tested as well as get_dir_list_from_filesystem.
+        So no further tests intended.
     """
     git_repo_list = get_dir_list_from_filesystem('*.git')
     for git_repo in git_repo_list:
