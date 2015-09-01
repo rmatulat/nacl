@@ -7,11 +7,13 @@ from nacl.git import branch_is_clean
 from nacl.git import need_pull_push
 from nacl.git import is_merged
 from nacl.git import is_git_repo
+from nacl.git import print_is_git_repo
 from nacl.git import get_all_branches
 from nacl.git import branch_exist
 from nacl.git import get_last_commit_sha
 from nacl.git import is_commit_on_remote
 from nacl.git import get_current_branch
+from nacl.git import get_local_url_list
 from nacl.git import git
 from nacl.exceptions import GitCallError
 from nacl.git import list_git_repositories
@@ -52,6 +54,22 @@ class TestNaclGit(unittest.TestCase):
     def test_need_pull_push_3(self, whatever):
         self.assertEqual(need_pull_push(True), 3)
 
+    @mock.patch('nacl.git.git', side_effect=[None, "a", "a", "b"])
+    def test_need_pull_push_0_answer(self, whatever):
+        self.assertEqual(need_pull_push(False), 'Up-to-date')
+
+    @mock.patch('nacl.git.git', side_effect=[None, "a", "b", "a"])
+    def test_need_pull_push_1_answer(self, whatever):
+        self.assertEqual(need_pull_push(False), 'Need to pull')
+
+    @mock.patch('nacl.git.git', side_effect=[None, "a", "b", "b"])
+    def test_need_pull_push_2_answer(self, whatever):
+        self.assertEqual(need_pull_push(False), 'Need to push')
+
+    @mock.patch('nacl.git.git', side_effect=[None, "a", "b", "c"])
+    def test_need_pull_push_3_answer(self, whatever):
+        self.assertEqual(need_pull_push(False), 'Diverged')
+
     # is_merged()
     @mock.patch('nacl.git.git', side_effect=[None, "a", "a"])
     def test_is_merged_true(self, whatever):
@@ -62,11 +80,19 @@ class TestNaclGit(unittest.TestCase):
         self.assertFalse(is_merged("foo_branch"))
 
     # is_git_repo()
-    # this is weird because I can switch the mocked module to
-    # whatever I like as long as it is a valid module?!
-    @mock.patch('os.path.exists', side_effect=[True])
+    @mock.patch('os.path.exists', return_value=True)
     def test_is_git_repo(self, os_mock):
         self.assertTrue(is_git_repo())
+
+    @mock.patch('os.path.exists', return_value=True)
+    def test_is_git_repo_with_dir_name(self, os_mock):
+        self.assertTrue(is_git_repo('foo'))
+
+    # print_is_git_repo()
+    @mock.patch('nacl.git.is_git_repo', return_value=False)
+    def test_print_is_git_repo(self, is_git_mock):
+        self.assertEquals([('WARNING', 'No git repository found!', 1)],
+                          print_is_git_repo._fn())
 
     # get_all_branches()
     @mock.patch('nacl.git.git', side_effect=["foo_branch"])
@@ -342,6 +368,13 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.git', return_value='')
     def test_remote_prune_output_none(self, mock):
         self.assertEquals([('INFO', 'Nothing to prune')], remote_prune._fn())
+
+    # get_local_url_list()
+    @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=['foo'])
+    @mock.patch('os.chdir', return_value=None)
+    @mock.patch('nacl.git.git', return_value='git@foo.git')
+    def test_get_local_url_list(self, mock_gdlff, mock_os, mock_git):
+        self.assertEquals(['git@foo.git'], get_local_url_list())
 
     # pretty_status()
     # Branch is clean
