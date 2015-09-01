@@ -5,7 +5,7 @@
 import nacl.gitlabapi as api
 from nacl.helper import query_yes_no
 import nacl.git as git
-from nacl.decorator import Log, log
+from nacl.decorator import log
 import pprint
 
 
@@ -71,7 +71,7 @@ class NaclFlow(object):
         else:
             return [('INFO', 'No issues found')]
 
-    @Log
+    @log
     def edit_issue(self, issue_id=None, do=None):
         """ Close or reopen an issue """
 
@@ -112,7 +112,7 @@ class NaclFlow(object):
                         'Issue ID must be provided and an integer'))
         return _ret
 
-    @Log
+    @log
     def write_patch_for_issue(self, issue_id=None):
         """ Workflow for resolving an issue, step 1:
             Open a branch """
@@ -158,7 +158,7 @@ class NaclFlow(object):
         # 2. switch to that branch.
         git.change_or_create_branch("issue_" + str(issue_id))
 
-    @Log
+    @log
     def commit_patch(self, assignee_id=None, mr_text=None):
         """ Commit the patch and provide a mergerequest """
 
@@ -295,7 +295,7 @@ class NaclFlow(object):
 
         return _ret
 
-    @Log
+    @log
     def list_project_members(self):
         """ Display a list of all projectmembers """
 
@@ -311,7 +311,7 @@ class NaclFlow(object):
 
         return _ret
 
-    @Log
+    @log
     def list_all_mergerequests(self, all=False):
         """ Display all open mergerequests of a project """
 
@@ -336,7 +336,7 @@ class NaclFlow(object):
             _ret.append(('INFO', '-' * 80))
             return _ret
 
-    @Log
+    @log
     def get_mergerequest_details(self, mergerequest_id=None):
         """ Display the details of a mergerequest """
         _ret = []
@@ -363,7 +363,7 @@ class NaclFlow(object):
 
         return _ret
 
-    @Log
+    @log
     def accept_mergerequest(self, mergerequest_id=None):
         """ Accept a mergerequest
             That has to have an awful workflow, because we want to ensure
@@ -417,7 +417,7 @@ class NaclFlow(object):
 
         return _ret
 
-    @Log
+    @log
     def get_commit(self, commit=None):
         """ Displays a commit """
 

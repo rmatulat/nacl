@@ -12,12 +12,12 @@ from nacl.helper import color, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.fileutils import get_users_nacl_conf
 import nacl.gitapi
-from nacl.decorator import Log, ListLine
+from nacl.decorator import log, ListLine
 from nacl.exceptions import GitCallError
 import pprint
 
 
-@Log
+@log
 def list_git_repositories():
     """ using a list of local git repositories to check whether
         they have uncommitted changes or not and list them in a pretty way.
@@ -57,7 +57,7 @@ def merge_single_repository():
     merge_git_repo()
 
 
-@Log
+@log
 def merge_git_repo(git_repo_name=None):
     """ Do the heavy lifting of a merge """
 
@@ -110,7 +110,7 @@ def merge_git_repo(git_repo_name=None):
     return _ret
 
 
-@Log
+@log
 def remote_diff():
     """ Shows the diffs between the local and the origin/master"""
 
@@ -129,7 +129,7 @@ def remote_diff():
     return _ret
 
 
-@Log
+@log
 def checkout_branch(branch):
 
     print_is_git_repo()
@@ -159,7 +159,7 @@ def is_git_repo(dir_name=None):
         return os.path.exists(dir_name + '.git')
 
 
-@Log
+@log
 def print_is_git_repo():
     """ Print and exit if is no repository """
     if not is_git_repo():
@@ -180,7 +180,7 @@ def branch_exist(branch):
     return False
 
 
-@Log
+@log
 def change_or_create_branch(branch=None):
     """ Either creates (and switches into) a branch or just list branches """
 
@@ -201,7 +201,7 @@ def change_or_create_branch(branch=None):
     return _ret
 
 
-@Log
+@log
 def remote_prune():
     """
     Removes staled remote refs (like old feature branches at the
