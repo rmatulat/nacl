@@ -38,6 +38,13 @@ Options:
 from nacl.flow import NaclFlow
 from nacl.base import init_nacl
 from vendor.docopt import docopt
+import sys
+# This is a BAD hack to avoid SSLContext Warnings of urllib3 in python <2.7.9
+# See: https://urllib3.readthedocs.org/en/latest/security.html#insecureplatformwarning
+
+if sys.version_info < (2, 7, 9):
+    import logging
+    logging.captureWarnings(True)
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='nacl-flow version 0.1')
