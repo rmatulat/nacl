@@ -47,8 +47,8 @@ class NaclFlow(object):
     def get_my_issues(self, all=None):
         """ List all my open issues """
         issues = self.api.get_my_issues()
-        _ret = []
 
+        _ret = []
         if issues:
             for issue in issues:
                 if not all and issue['state'] == 'closed':
@@ -83,20 +83,20 @@ class NaclFlow(object):
             _ret.append(('WARNING', "ID must be an integer", 1))
             return _ret
 
-        if issue_id:
-            issue_uid = self.api.issue_iid_to_uid(issue_id)
-            if not issue_uid:
-                _ret.append(('FAIL',
-                            "Issue {0} not found".format(issue_id), 1))
-                return _ret
+        issue_uid = self.api.issue_iid_to_uid(issue_id)
+        if not issue_uid:
+            _ret.append(('FAIL',
+                        "Issue {0} not found".format(issue_id), 1))
+            return _ret
 
-            if do == 'close':
-                state_event = 'close'
-            elif do == 'reopen':
-                state_event = 'reopen'
-            else:
-                raise ValueError('do must be close or reopen')
+        if do == 'close':
+            state_event = 'close'
+        elif do == 'reopen':
+            state_event = 'reopen'
+        else:
+            raise ValueError('do must be close or reopen')
 
+        try:
             ret_val = self.api.edit_issue(issue_uid, state_event=state_event)
             if ret_val['state'] == 'closed':
                 _ret.append(('GREEN', 'Issue {0} closed'.format(issue_id)))
@@ -107,9 +107,9 @@ class NaclFlow(object):
                     'FAIL',
                     'Issue {0} has state: {1}'
                     .format(issue_id, ret_val['state'])))
-        else:
-            _ret.append(('WARNING',
-                        'Issue ID must be provided and an integer'))
+        except:
+            _ret.append(('FAIL', 'Something went wrong'))
+
         return _ret
 
     @log
@@ -139,24 +139,29 @@ class NaclFlow(object):
         p_id = self.api.get_project_id()
 
         # Transform iid to id
-        issue_uid = self.api.issue_iid_to_uid(issue_id)
+        try:
+            issue_uid = self.api.issue_iid_to_uid(issue_id)
 
-        issue = self.api.getprojectissue(p_id, issue_uid)
-        if not issue:
-            _ret.append(('WARNING', "Issue ID not found", 1))
-            return _ret
+            issue = self.api.getprojectissue(p_id, issue_uid)
+            if not issue:
+                _ret.append(('WARNING', "Issue ID not found", 1))
+                return _ret
 
-        if issue['project_id'] != p_id:
-            _ret.append((
-                'WARNING',
-                "The issue ID does not correspond to the current " +
-                "git repository/project", 1))
+            if issue['project_id'] != p_id:
+                _ret.append((
+                    'WARNING',
+                    "The issue ID does not correspond to the current " +
+                    "git repository/project", 1))
+                return _ret
+        except TypeError as e:
+            _ret.append(('FAIL', 'Something went wrong: {0}'. format(e.message)))
             return _ret
 
         # the workflow itself:
         # 1. create a branch
         # 2. switch to that branch.
         git.change_or_create_branch("issue_" + str(issue_id))
+        return _ret
 
     @log
     def commit_patch(self, assignee_id=None, mr_text=None):
@@ -236,13 +241,13 @@ class NaclFlow(object):
             except ValueError as e:
                 _ret.append((
                     'FAIL',
-                    "Merge into {0} failed: {1}").
-                    format(sourcebranch, e.message))
+                    "Merge into {0} failed: {1}".
+                    format(sourcebranch, e.message)))
 
                 git.git(['rebase', '--abort'])
-                _ret.append('INFO', 'Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.')
-                _ret.append('INFO', 'Then run\n\ngit add <FILE>\n git rebase --continue')
-                _ret.append('INFO', 'At least run\n\nnacl-flow cp again', 1)
+                _ret.append(('INFO', 'Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.'))
+                _ret.append(('INFO', 'Then run\n\ngit add <FILE>\n git rebase --continue'))
+                _ret.append(('INFO', 'At least run\n\nnacl-flow cp again', 1))
                 return _ret
 
         else:
@@ -250,20 +255,17 @@ class NaclFlow(object):
             # We check the local source branch compared to the remote
             # source branch.
             unpushed_commits = git.need_pull_push(
-                True,
-                sourcebranch,
-                sourcebranch)
+                return_returncode=True,
+                local_branch=sourcebranch,
+                remote_branch=sourcebranch)
             if unpushed_commits == 2:
                 need_push = True
 
         if need_push:
             _ret.append(('INFO', "Pushing to origin " + sourcebranch))
             git.git(['push', 'origin', sourcebranch])
-        elif not need_push:
-            _ret.append(('INFO', "Local and remote are up-to-date."))
         else:
-            _ret.append(('WARNING', "Something went wrong.", 1))
-            return _ret
+            _ret.append(('INFO', "Local and remote are up-to-date."))
 
         # We are done with pushing commits.
         # Step 3. Creating a MR
@@ -335,6 +337,7 @@ class NaclFlow(object):
             _ret.append(('GREEN', "DATE: " + str(mergerequest['created_at'])))
             _ret.append(('INFO', '-' * 80))
             return _ret
+        return _ret
 
     @log
     def get_mergerequest_details(self, mergerequest_id=None):
@@ -425,6 +428,7 @@ class NaclFlow(object):
 
         if not commit:
             _ret.append(('FAIL', "Commit SHA must be provided"))
+            return _ret
 
         p_id = self.api.get_project_id()
         details = self.api.getrepositorycommit(p_id, commit)
