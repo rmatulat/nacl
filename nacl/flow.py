@@ -414,7 +414,7 @@ class NaclFlow(object):
                 _ret.append((
                     'FAIL',
                     "Mergerequest already closed? Is there a mergerequest " +
-                    "with this ID? State: {0}").format(return_values['state']))
+                    "with this ID? State: {0}".format(return_values['state'])))
         else:
             _ret.append(('INFO', "Merge aborted!"))
 

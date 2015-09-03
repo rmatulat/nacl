@@ -4,8 +4,8 @@
 # """ Handels calls to git hoster api like gitlab """
 
 import nacl.fileutils
+from nacl.decorator import log
 import vendor.gitlab
-import sys
 import pprint
 
 
@@ -14,13 +14,14 @@ def get_gitgitlab_handle(host, my_token):
     return vendor.gitlab.Gitlab(host, token=my_token)
 
 
-def clean_up_repositorie(repo_dict, ignore_list):
+def clean_up_repositories(repo_dict, ignore_list):
     """ Cleans up a dict and removes repositories that should be ignored """
     for i in ignore_list:
         repo_dict.pop(i, None)
     return repo_dict
 
 
+@log
 def get_remote_url_dict():
     """
     Get a list of all remote repository urls (like from an gitlab instance).
@@ -28,6 +29,8 @@ def get_remote_url_dict():
     starting point to look at.
     TODO: Make this testable. Currently it's not.
     """
+
+    _ret = []
 
     config = nacl.fileutils.get_users_nacl_conf()
 
@@ -45,10 +48,10 @@ def get_remote_url_dict():
             if group['name'] == config['gitgroup']:
                 group_id = group['id']
     except:
-        # Fix this: use decorator and be more precise about what
+        # Fix this: be more precise about what
         # fails.
-        print("[ERROR]: API call failed! Credentials?")
-        sys.exit(3)
+        _ret.append(('FAIL', 'API call failed! Credentials?', 1))
+        return _ret
 
     if group_id:
         ssh_url_dict = {}
@@ -57,9 +60,10 @@ def get_remote_url_dict():
         for project in group['projects']:
             ssh_url_dict[project['ssh_url_to_repo']] = project['description']
 
-        return clean_up_repositorie(ssh_url_dict, ignore_repositories)
+        return {'direct_out': clean_up_repositories(ssh_url_dict, ignore_repositories)}
     else:
-        # Fix this, use decorator instead
-        print("Git group not found: %s" % config['gitgroup'])
-        sys.exit(3)
+        _ret.append(('FAIL',
+                     "Git group not found: %s" % config['gitgroup'],
+                     1))
+        return _ret
 

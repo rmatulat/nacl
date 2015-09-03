@@ -119,6 +119,14 @@ class TestNaclFlow(unittest.TestCase):
                             '--------------------------------------------------------------------------------')],
                           self.flow.get_my_issues._fn(self.flow))
 
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_my_issues',
+                return_value=False)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.getproject',
+                return_value=project_a)
+    def test_get_my_no_issues(self, mock_gai, mock_gp):
+        self.assertEquals([('INFO', 'No issues found')],
+                          self.flow.get_my_issues._fn(self.flow))
+
     # edit_issue()
 
     # test that a non int is provided
@@ -262,6 +270,26 @@ class TestNaclFlow(unittest.TestCase):
         self.assertEquals([('WARNING',
                           'The issue ID does not correspond to the current git repository/project',
                            1)],
+                          self.flow.write_patch_for_issue._fn(self.flow, issue_id=123))
+
+    # something went wrong
+    @mock.patch('nacl.git.change_or_create_branch', return_value=None)
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_project_id',
+                return_value=123)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.issue_iid_to_uid',
+                return_value=123)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.getprojectissue',
+                return_value=TypeError('foo'))
+    def test_write_patch_something_wrong(self,
+                                         mock_change_or_create,
+                                         mock_is_git_repo,
+                                         mock_branch,
+                                         mock_get_pid,
+                                         mock_iid,
+                                         mock_getpi):
+        self.assertEquals([('FAIL', "Something went wrong: sequence index must be integer, not 'str'")],
                           self.flow.write_patch_for_issue._fn(self.flow, issue_id=123))
 
     # commit_patch()
@@ -668,6 +696,11 @@ class TestNaclFlow(unittest.TestCase):
         'source_branch': 'foo'
     }
 
+    sample_ret_value_not_merged = {
+        'state': '_not_merged',
+        'source_branch': 'foo'
+    }
+
     # Normal, perfect workflow
     @mock.patch('nacl.flow.query_yes_no', return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
@@ -710,6 +743,26 @@ class TestNaclFlow(unittest.TestCase):
                                                mock_gpid):
         self.assertEquals([('GREEN', 'Start merge'),
                            ('FAIL', 'Mergerequest would not merge into origin/master', 1)],
+                          self.flow.accept_mergerequest._fn(self.flow))
+
+    # For some reason the MR was not merged
+    @mock.patch('nacl.flow.query_yes_no', return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
+                return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mr_is_mergeable',
+                return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.accept_mergerequest',
+                return_value=sample_ret_value_not_merged)
+    @mock.patch('nacl.git.git', return_value=None)
+    def test_accept_mergerequest_not_merged(self,
+                                            mock_yn,
+                                            mock_imro,
+                                            mock_mim,
+                                            mock_amr,
+                                            mock_git):
+        self.assertEquals([('GREEN', 'Start merge'),
+                           ('FAIL',
+                            'Mergerequest already closed? Is there a mergerequest with this ID? State: _not_merged')],
                           self.flow.accept_mergerequest._fn(self.flow))
 
     # get_commit()

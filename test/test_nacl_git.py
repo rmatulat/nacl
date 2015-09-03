@@ -127,6 +127,10 @@ class TestNaclGit(unittest.TestCase):
     def test_is_commit_on_remote_3(self, mock):
         self.assertRaises(ValueError, is_commit_on_remote)
 
+    @mock.patch('nacl.git.git', side_effect=TypeError())
+    def test_is_commit_on_remote_4(self, mock):
+        self.assertFalse(is_commit_on_remote('aaa'))
+
     # get_current_branch()
     @mock.patch('nacl.git.git', side_effect=["master"])
     def test_get_current_branch(self, mock):
@@ -137,13 +141,18 @@ class TestNaclGit(unittest.TestCase):
     # normal git call
     @mock.patch('subprocess.Popen.communicate', return_value=('foo', None))
     @mock.patch('subprocess.Popen.wait', return_value=0)
-    def test_git(self, mock_wait, mock_communicate):
+    @mock.patch('nacl.git.get_users_nacl_conf', return_value={})
+    def test_git(self, mock_wait, mock_communicate, mock_conf):
         self.assertEquals('foo', git(['foo']))
 
     # raises GitCallError
     @mock.patch('subprocess.Popen.communicate', return_value=('foo', 'bar'))
     @mock.patch('subprocess.Popen.wait', return_value=1)
-    def test_raise_git_call_error(self, mock_wait, mock_communicate):
+    @mock.patch('nacl.git.get_users_nacl_conf', return_value={})
+    def test_raise_git_call_error(self,
+                                  mock_wait,
+                                  mock_communicate,
+                                  mock_conf):
         self.assertRaises(GitCallError, lambda: git(['foo']))
 
     # providing an env
@@ -162,7 +171,7 @@ class TestNaclGit(unittest.TestCase):
     # variable _fn. We are NOT calling list_git_repositories() as it
     # will be decorated at execution with all the decoration actually done.
     #
-    # NEXT GOTCHA, THAT COSTS ME HOURS TO FIGURE OUT:
+    # NEXT GOTCHA, THAT TOOK ME HOURS TO FIGURE OUT:
     # Where to patch:
     # http://www.voidspace.org.uk/python/mock/patch.html#where-to-patch
     #
@@ -227,6 +236,16 @@ class TestNaclGit(unittest.TestCase):
                                                   mock_gcb,
                                                   mock_pigr):
         self.assertEqual([('INFO', 'Switch to branch: foo')], checkout_branch._fn('bar'))
+
+    # git raises an exception
+    @mock.patch('nacl.git.git', side_effect=GitCallError())
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_checkout_branch_git_raises(self,
+                                        mock_git,
+                                        mock_gcb,
+                                        mock_pigr):
+        self.assertEqual([('FAIL', 'Unable to checkout bar : ')], checkout_branch._fn('bar'))
 
     def git_side_effect(args):
         raise GitCallError
@@ -368,6 +387,10 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.git', return_value='')
     def test_remote_prune_output_none(self, mock):
         self.assertEquals([('INFO', 'Nothing to prune')], remote_prune._fn())
+
+    @mock.patch('nacl.git.git', side_effect=GitCallError())
+    def test_remote_prune_raises(self, mock):
+        self.assertEquals([('FAIL', 'Prune failed: ')], remote_prune._fn())
 
     # get_local_url_list()
     @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=['foo'])

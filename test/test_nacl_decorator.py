@@ -145,5 +145,21 @@ class TestLog(unittest.TestCase):
         output = mock.getvalue()
         self.assertEqual(u'\x1b[1G\x1b[93m/srv/salt/base/tools\x1b[0m\x1b[52G\x1b[92mmaster\x1b[0m\x1b[58G\x1b[91m\x1b[0m\x1b[68G\x1b[4mClean\x1b[0m\x1b[84G\x1b[91mNeed to pull\x1b[0m\x1b[100G\x1b[36missue_1, master, test1, test1_12345678\x1b[0m\n', output)
 
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_ListLine_d(self, mock):
+        """ decorator returns nothing """
+        @ListLine
+        def dummy():
+            return {
+                'status': u'Clean',
+                'merge_status': u'',
+                'branch': u'master',
+                'pull_push': u'Up-to-date',
+                'dir_name': u'/srv/salt/base/tools',
+                'all_branches': u'issue_1, master, test1, test1_12345678'}
+        dummy()
+        output = mock.getvalue()
+        self.assertEqual(u'\x1b[1G\x1b[93m/srv/salt/base/tools\x1b[0m\x1b[52G\x1b[92mmaster\x1b[0m\x1b[58G\x1b[91m\x1b[0m\x1b[68G\x1b[4mClean\x1b[0m\x1b[84G\x1b[92mUp-to-date\x1b[0m\x1b[100G\x1b[36missue_1, master, test1, test1_12345678\x1b[0m\n', output)
+
 if __name__ == '__main__':
     unittest.main()

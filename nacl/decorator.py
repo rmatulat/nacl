@@ -34,6 +34,21 @@ def log(func):
         exc = None
         msgs = func(*args, **kwargs)
 
+        # maybe there is a function that prints stuff to the terminal in
+        # case of failures, BUT return data structures like dicts etc as well.
+        # In this case, we need a way to distinguish between
+        # both possibilities.
+        # So if you have a function with the @log decorator,
+        # but in some occasions it has to return data, then wrap this data
+        # in a dict like so:
+        # return {'direct_out': my_data}
+        # 'direct_out' is the key to return whatever you want.
+
+        try:
+            return msgs['direct_out']
+        except:
+            pass
+
         if not msgs:
             # If a decorated function returns None than do nothing.
             # (That might be expected behavior)
@@ -50,7 +65,7 @@ def log(func):
                 level, msg, exc = msg
                 show_lvl = 'WARN'
             else:
-                raise ValueError('tuble must contain 2 or 3 elements!')
+                raise ValueError('tuple must contain 2 or 3 elements!')
 
             if level == 'INFO':
                 sys.stdout.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')

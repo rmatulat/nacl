@@ -210,7 +210,7 @@ def remote_prune():
     _ret = []
     try:
         output = git(['remote', 'prune', 'origin'])
-        print(output)
+
     except GitCallError as e:
         _ret.append(('FAIL', 'Prune failed: {0}'.format(e)))
         return _ret
