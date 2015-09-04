@@ -4,13 +4,11 @@
 """ Contains code for file operations in a very broad sense of
     it's meaning."""
 import salt.config
-from pprint import pprint
 from distutils import spawn
 from nacl.decorator import log
 import fnmatch
 import os
 import json
-import sys
 
 
 def binary_exists(binary_name):
