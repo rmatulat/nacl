@@ -6,8 +6,6 @@ Basic functions for the nacl package
 
 This module should contain some basic functions, needed
 within the nacl package.
-Curerntly it does not. This is a design flaw we need to
-correct.
 """
 import salt.config
 from nacl.decorator import log

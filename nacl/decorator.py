@@ -24,9 +24,6 @@ def log(func):
     test, because self is masked with the decorated class functions
     self (of class NaclFLow). So we are unable to call the function under
     test undecorated.
-
-    We have to do further tests on that topic and at least choose only
-    one implementation.
     """
 
     def wrapper(*args, **kwargs):
@@ -57,7 +54,8 @@ def log(func):
 
         for msg in msgs:
 
-            # we distinguish between tuples with an 3rd argument (sys.exit() exitcode)
+            # we distinguish between tuples with an 3rd argument
+            # (sys.exit() exitcode)
             # and no tuples without an exitcode
             show_lvl = 'INFO'
             if 2 == len(msg):
