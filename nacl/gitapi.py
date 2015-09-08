@@ -13,6 +13,7 @@ switch between gitlab and github by using an config attribute.
 
 import nacl.fileutils
 from nacl.decorator import log
+from nacl.helper import clean_up_dict
 import vendor.gitlab
 import pprint
 
@@ -20,19 +21,6 @@ import pprint
 def get_gitgitlab_handle(host, my_token):
     """ returns a gitlab api handle """
     return vendor.gitlab.Gitlab(host, token=my_token)
-
-
-def clean_up_repositories(repo_dict, ignore_list):
-    """
-    Cleans up a dict and removes repositories that should be ignored
-
-    TODO: Move this to nacl.helper and give it a more meanigfull name.
-    It is more like a negative_merge_dictionary kind of thing that could
-    be used for more than this purpose.
-    """
-    for i in ignore_list:
-        repo_dict.pop(i, None)
-    return repo_dict
 
 
 @log
@@ -74,7 +62,7 @@ def get_remote_url_dict():
         for project in group['projects']:
             ssh_url_dict[project['ssh_url_to_repo']] = project['description']
 
-        return {'direct_out': clean_up_repositories(ssh_url_dict, ignore_repositories)}
+        return {'direct_out': clean_up_dict(ssh_url_dict, ignore_repositories)}
     else:
         _ret.append(('FAIL',
                      "Git group not found: %s" % config['gitgroup'],

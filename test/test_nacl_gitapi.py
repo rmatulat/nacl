@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 import unittest
 import mock
-# from nacl.gitapi import get_remote_url_dict
-from nacl.gitapi import clean_up_repositories
 from nacl.gitapi import get_gitgitlab_handle
 from nacl.gitapi import get_remote_url_dict
 
@@ -98,9 +96,5 @@ class TestNaclGitApi(unittest.TestCase):
         self.assertEqual([('FAIL', 'Git group not found: u_saltstack', 1)],
                          get_remote_url_dict._fn())
 
-    # clean_up_repositories()
-    def test_clean_up_repositorie(self):
-        test_dict = {'foo': 1, 'bar': 2, 'baz': 3}
-        test_ignore_list = ['bar']
-        result_dict = {'foo': 1, 'baz': 3}
-        self.assertEqual(result_dict, clean_up_repositories(test_dict, test_ignore_list))
+if __name__ == '__main__':
+    unittest.main()

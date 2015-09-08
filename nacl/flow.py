@@ -107,7 +107,7 @@ class NaclFlow(object):
         """
         Close or reopen an issue
 
-        'do' must be 'close' or 'reopen'
+        'do' must be either 'close' or 'reopen'
         """
 
         _ret = []

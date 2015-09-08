@@ -69,3 +69,12 @@ def merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
+
+def clean_up_dict(clean_dict, ignore_list):
+    """
+    Remove items from dict that are in ignore_list
+    """
+    for i in ignore_list:
+        clean_dict.pop(i, None)
+    return clean_dict

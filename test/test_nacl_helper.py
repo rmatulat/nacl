@@ -48,5 +48,12 @@ class TestNaclHelper(unittest.TestCase):
         b = {'bar': 2}
         self.assertEqual({'bar': 2, 'foo': 1}, nacl.helper.merge_two_dicts(a, b))
 
+    # clean_up_repositories()
+    def test_clean_up_repositorie(self):
+        test_dict = {'foo': 1, 'bar': 2, 'baz': 3}
+        test_ignore_list = ['bar']
+        result_dict = {'foo': 1, 'baz': 3}
+        self.assertEqual(result_dict, nacl.helper.clean_up_dict(test_dict, test_ignore_list))
+
 if __name__ == '__main__':
     unittest.main()
