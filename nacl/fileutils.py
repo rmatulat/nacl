@@ -8,11 +8,9 @@ Contains code for file operations in a very broad sense of
 it's meaning.
 """
 from distutils import spawn
-from nacl.decorator import log
 from nacl.base import get_salt_root_dirs
 import fnmatch
 import os
-import json
 
 
 def binary_exists(binary_name):
@@ -48,26 +46,3 @@ def get_dir_list_from_filesystem(filter=None):
                 matches.append(root)
 
     return matches
-
-
-@log
-def get_users_nacl_conf():
-    """
-    returns the users nacl configuration
-
-    TODO: Move this to nacl.base
-    It looks like this is not a typical file related opetions and maybe
-    better placed at nacl.base.
-    """
-
-    user_home = os.path.expanduser("~")
-    user_config = {}
-    _ret = []
-
-    try:
-        with open(user_home + '/.nacl') as data_file:
-            user_config = json.load(data_file)
-        return {'direct_out': user_config}
-    except:
-        _ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
-        return _ret

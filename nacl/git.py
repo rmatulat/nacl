@@ -14,7 +14,7 @@ from subprocess import Popen, PIPE
 # from pprint import pprint
 from nacl.helper import color, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
-from nacl.fileutils import get_users_nacl_conf
+from nacl.base import get_users_nacl_conf
 import nacl.gitapi
 from nacl.decorator import log, ListLine
 from nacl.exceptions import GitCallError

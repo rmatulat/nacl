@@ -8,13 +8,11 @@ This module should contain some basic functions, needed
 within the nacl package.
 Curerntly it does not. This is a design flaw we need to
 correct.
-
-There should be moved here:
-    * get_users_nacl_conf() from nacl.fileutils
-
-Maybe other functions will fit here in as well.
 """
 import salt.config
+from nacl.decorator import log
+import json
+import os
 
 
 def get_salt_root_dirs():
@@ -33,6 +31,24 @@ def get_salt_root_dirs():
         dir_list.extend(values)
 
     return sorted(set(dir_list))
+
+
+@log
+def get_users_nacl_conf():
+    """ returns the users nacl configuration """
+
+    user_home = os.path.expanduser("~")
+    user_config = {}
+    _ret = []
+
+    try:
+        with open(user_home + '/.nacl') as data_file:
+            user_config = json.load(data_file)
+        return {'direct_out': user_config}
+    except:
+        _ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
+        return _ret
+
 
 def init_nacl():
     """

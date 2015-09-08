@@ -56,7 +56,7 @@ class TestNaclGitApi(unittest.TestCase):
                     return sample_group
         return Foo()
 
-    @mock.patch("nacl.fileutils.get_users_nacl_conf",
+    @mock.patch("nacl.base.get_users_nacl_conf",
                 return_value=sample_user_config_1)
     @mock.patch('nacl.gitapi.get_gitgitlab_handle', return_value=None)
     def test_get_remote_url_dict_fail1(self,
@@ -65,7 +65,7 @@ class TestNaclGitApi(unittest.TestCase):
         self.assertEqual([('FAIL', 'API call failed! Credentials?', 1)],
                          get_remote_url_dict._fn())
 
-    @mock.patch("nacl.fileutils.get_users_nacl_conf",
+    @mock.patch("nacl.base.get_users_nacl_conf",
                 return_value=sample_user_config_2)
     @mock.patch('nacl.gitapi.get_gitgitlab_handle', return_value=None)
     def test_get_remote_url_dict_fail2(self,
@@ -75,7 +75,7 @@ class TestNaclGitApi(unittest.TestCase):
                          get_remote_url_dict._fn())
 
     # test with gitgroup providing a group
-    @mock.patch("nacl.fileutils.get_users_nacl_conf",
+    @mock.patch("nacl.base.get_users_nacl_conf",
                 return_value=sample_user_config_1)
     @mock.patch('nacl.gitapi.get_gitgitlab_handle', side_effect=return_handle)
     def test_get_remote_url_dict_group(self,
@@ -86,8 +86,7 @@ class TestNaclGitApi(unittest.TestCase):
 
     # test with gitgroup providing groups but the user has
     # named a unknown group as well
-    # test with gitgroup providing a group
-    @mock.patch("nacl.fileutils.get_users_nacl_conf",
+    @mock.patch("nacl.gitapi.get_users_nacl_conf",
                 return_value=sample_user_config_2)
     @mock.patch('nacl.gitapi.get_gitgitlab_handle', side_effect=return_handle)
     def test_get_remote_url_dict_unknown_group(self,

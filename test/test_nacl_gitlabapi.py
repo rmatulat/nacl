@@ -21,7 +21,7 @@ class TestNaclGitLapApiCall(unittest.TestCase):
             u'git@gitlab.example.com:saltstack/foz.git']}
 
     @mock.patch(
-        "nacl.fileutils.get_users_nacl_conf",
+        "nacl.gitlabapi.get_users_nacl_conf",
         side_effect=[fake_config])
     def setUp(self, config_mock):
         self.git = GitLapApiCall()

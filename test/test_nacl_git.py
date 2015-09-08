@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 import mock
-import pprint
+# import pprint
 from nacl.git import branch_is_clean
 from nacl.git import need_pull_push
 from nacl.git import is_merged

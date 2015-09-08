@@ -11,7 +11,7 @@ completly or make it useable as an api for nacl.flow so that we can
 switch between gitlab and github by using an config attribute.
 """
 
-import nacl.fileutils
+from nacl.base import get_users_nacl_conf
 from nacl.decorator import log
 from nacl.helper import clean_up_dict
 import vendor.gitlab
@@ -34,7 +34,7 @@ def get_remote_url_dict():
 
     _ret = []
 
-    config = nacl.fileutils.get_users_nacl_conf()
+    config = get_users_nacl_conf()
 
     try:
         ignore_repositories = config['ignore_repositories']

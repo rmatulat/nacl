@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import nacl.fileutils
+from nacl.base import get_users_nacl_conf
 import nacl.git as ngit
 from nacl.helper import color
 import sys
@@ -22,7 +22,8 @@ class GitLapApiCall(Gitlab):
     """
 
     def __init__(self):
-        self.config = nacl.fileutils.get_users_nacl_conf()
+        self.config = get_users_nacl_conf()
+        pprint.pprint(self.config)
         super(GitLapApiCall, self).__init__(
             self.config['gitapiserver'],
             token=self.config['gitapitoken']
