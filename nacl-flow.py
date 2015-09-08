@@ -91,7 +91,7 @@ if arguments['start-patch'] or arguments['sp']:
 
 if arguments['commit-patch'] or arguments['cp']:
     flow = NaclFlow()
-    flow.commit_patch(assignee_id=arguments['ASSIGNEE'], mr_text=arguments['TEXT'])
+    flow.push_patch(assignee_id=arguments['ASSIGNEE'], mr_text=arguments['TEXT'])
 
 if arguments['get-commit'] or arguments['gc']:
     flow = NaclFlow()

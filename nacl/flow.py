@@ -207,9 +207,9 @@ class NaclFlow(object):
         return _ret
 
     @log
-    def commit_patch(self, assignee_id=None, mr_text=None):
+    def push_patch(self, assignee_id=None, mr_text=None):
         """
-        Commit the patch and provide a mergerequest
+        Push the patch and provide a mergerequest
 
         The main problem is to avoid CONFLICTs while accepting a MR in
         accept_mergerequest().
@@ -222,11 +222,6 @@ class NaclFlow(object):
 
         After the patch is pushed to the remote as a new branch the MR
         will be created.
-
-        TODO:
-        rename function to push_patch() because there is 'git commit'
-        done here. We just keep track of the push-workflow so the mention of
-        the word 'commit' might be mistaken.
         """
 
         _ret = []

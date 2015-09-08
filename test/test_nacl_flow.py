@@ -292,23 +292,23 @@ class TestNaclFlow(unittest.TestCase):
         self.assertEquals([('FAIL', "Something went wrong: sequence index must be integer, not 'str'")],
                           self.flow.write_patch_for_issue._fn(self.flow, issue_id=123))
 
-    # commit_patch()
+    # push_patch()
 
     # current branch == master
     @mock.patch('nacl.git.get_current_branch', return_value='master')
-    def test_commit_patch_not_master_branch(self, mock):
+    def test_push_patch_not_master_branch(self, mock):
         self.assertEquals([('WARNING',
                             'You can not open a mergerequest from your local master branch.\nPlease switch to your issue branch!',
-                            1)], self.flow.commit_patch._fn(self.flow))
+                            1)], self.flow.push_patch._fn(self.flow))
 
     # branch not clean
     @mock.patch('nacl.git.get_current_branch', return_value='foo')
     @mock.patch('nacl.git.branch_is_clean', return_value=False)
     @mock.patch('nacl.git.git', return_value='bar')
-    def test_commit_patch_branch_unclean(self, mock_gcb, mock_bic, mock_git):
+    def test_push_patch_branch_unclean(self, mock_gcb, mock_bic, mock_git):
         self.assertEquals([('INFO', 'bar'),
                            ('WARNING', 'You have uncommitted changes. Please commit them first!',
-                            1)], self.flow.commit_patch._fn(self.flow))
+                            1)], self.flow.push_patch._fn(self.flow))
 
     # Test step 1: Check whether the commit exist in the remote master branch
 
@@ -317,14 +317,14 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.git.branch_is_clean', return_value=True)
     @mock.patch('nacl.git.get_last_commit_sha', return_value='aabbcc')
     @mock.patch('nacl.git.is_commit_on_remote', return_value=True)
-    def test_commit_patch_sha_on_remote(self,
+    def test_push_patch_sha_on_remote(self,
                                         mock_gcb,
                                         mock_bic,
                                         mock_glc,
                                         mock_icor):
         self.assertEquals([('WARNING',
                             'Your local commit is already in the remote master branch.\nAborting!',
-                            1)], self.flow.commit_patch._fn(self.flow))
+                            1)], self.flow.push_patch._fn(self.flow))
 
     # Test step 2: Check whether we have to push our local
     # changes to the remote
@@ -344,7 +344,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_source_branch_not_on_remote(self,
+    def test_push_patch_source_branch_not_on_remote(self,
                                                       mock_gcb,
                                                       mock_bic,
                                                       mock_glc,
@@ -358,7 +358,7 @@ class TestNaclFlow(unittest.TestCase):
         self.assertEquals([('GREEN', 'Branch: foo'),
                            ('INFO', 'Try to rebase origin master into foo'),
                            ('INFO', 'Pushing to origin foo'),
-                           ('GREEN', 'Create a new mergerequest')], self.flow.commit_patch._fn(self.flow))
+                           ('GREEN', 'Create a new mergerequest')], self.flow.push_patch._fn(self.flow))
 
     # source branch is on remote and local and remote are up to date
     @mock.patch('nacl.git.get_current_branch', return_value='foo')
@@ -375,7 +375,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_source_branch_is_on_remote(self,
+    def test_push_patch_source_branch_is_on_remote(self,
                                                      mock_gcb,
                                                      mock_bic,
                                                      mock_glc,
@@ -388,7 +388,7 @@ class TestNaclFlow(unittest.TestCase):
                                                      mock_cmr):
         self.assertEquals([('GREEN', 'Branch: foo'),
                            ('INFO', 'Local and remote are up-to-date.'),
-                           ('GREEN', 'Create a new mergerequest')], self.flow.commit_patch._fn(self.flow))
+                           ('GREEN', 'Create a new mergerequest')], self.flow.push_patch._fn(self.flow))
 
     # source branch is on remote and we need to push
     @mock.patch('nacl.git.get_current_branch', return_value='foo')
@@ -405,7 +405,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_source_branch_is_on_remote_npp(self,
+    def test_push_patch_source_branch_is_on_remote_npp(self,
                                                          mock_gcb,
                                                          mock_bic,
                                                          mock_glc,
@@ -418,7 +418,7 @@ class TestNaclFlow(unittest.TestCase):
                                                          mock_cmr):
         self.assertEquals([('GREEN', 'Branch: foo'),
                            ('INFO', 'Pushing to origin foo'),
-                           ('GREEN', 'Create a new mergerequest')], self.flow.commit_patch._fn(self.flow))
+                           ('GREEN', 'Create a new mergerequest')], self.flow.push_patch._fn(self.flow))
 
     # Mergerequests exists
     @mock.patch('nacl.git.get_current_branch', return_value='foo')
@@ -435,7 +435,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=False)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_mergerequest_exists(self,
+    def test_push_patch_mergerequest_exists(self,
                                               mock_gcb,
                                               mock_bic,
                                               mock_glc,
@@ -448,7 +448,7 @@ class TestNaclFlow(unittest.TestCase):
                                               mock_cmr):
         self.assertEquals([('GREEN', 'Branch: foo'),
                            ('INFO', 'Pushing to origin foo'),
-                           ('INFO', 'Mergerequests exists. Skipping')], self.flow.commit_patch._fn(self.flow))
+                           ('INFO', 'Mergerequests exists. Skipping')], self.flow.push_patch._fn(self.flow))
 
     # We need this helper_func to fake a failed nacl.git.git() call
     def git_sideeffect(args):
@@ -472,7 +472,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=False)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_rebase_fails_and_raises(self,
+    def test_push_patch_rebase_fails_and_raises(self,
                                                   mock_gcb,
                                                   mock_bic,
                                                   mock_glc,
@@ -489,7 +489,7 @@ class TestNaclFlow(unittest.TestCase):
                            ('INFO',
                             'Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.'),
                            ('INFO', 'Then run\n\ngit add <FILE>\n git rebase --continue'),
-                           ('INFO', 'At least run\n\nnacl-flow cp again', 1)], self.flow.commit_patch._fn(self.flow))
+                           ('INFO', 'At least run\n\nnacl-flow cp again', 1)], self.flow.push_patch._fn(self.flow))
 
     # source branch is on remote and we need to push
     # with assignee_id and mr_text provided
@@ -507,7 +507,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_assignee_id_and_mr_text(self,
+    def test_push_patch_assignee_id_and_mr_text(self,
                                                   mock_gcb,
                                                   mock_bic,
                                                   mock_glc,
@@ -521,7 +521,7 @@ class TestNaclFlow(unittest.TestCase):
         self.assertEquals([('GREEN', 'Branch: foo'),
                            ('INFO', 'Pushing to origin foo'),
                            ('GREEN', 'Create a new mergerequest')],
-                          self.flow.commit_patch._fn(
+                          self.flow.push_patch._fn(
                               self.flow,
                               assignee_id=1,
                               mr_text='baz'))
@@ -543,7 +543,7 @@ class TestNaclFlow(unittest.TestCase):
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
                 return_value=True)
-    def test_commit_patch_assignee_id_is_no_int(self,
+    def test_push_patch_assignee_id_is_no_int(self,
                                                 mock_gcb,
                                                 mock_bic,
                                                 mock_glc,
@@ -557,7 +557,7 @@ class TestNaclFlow(unittest.TestCase):
         self.assertEquals([('GREEN', 'Branch: foo'),
                            ('INFO', 'Pushing to origin foo'),
                            ('WARNING', 'ID must be an integer', 1)],
-                          self.flow.commit_patch._fn(
+                          self.flow.push_patch._fn(
                               self.flow,
                               assignee_id='a',
                               mr_text='baz'))
