@@ -11,6 +11,7 @@ from distutils import spawn
 from nacl.base import get_salt_root_dirs
 import fnmatch
 import os
+# import pprint
 
 
 def binary_exists(binary_name):
@@ -22,22 +23,17 @@ def binary_exists(binary_name):
         return False
 
 
-def get_dir_list_from_filesystem(filter=None):
+def get_dir_list_from_filesystem(filter='*.git'):
     """
     Returns a list of salt directories
 
-    Its purpose is to return a list of pillar- and state directories.
-
-    TODO:
-    It is only used to return directories with git repos in it.
-    So we can remove the filter=None parameter and rename the function to
-    make it a bit more descriptive.
+    Its default purpose is to return a list of pillar- and state
+    git directories.
+    Maybe we like to use this function later on to find directories with *.sls
+    files in them.
     """
 
     matches = []
-    if filter is None:
-        return matches
-
     starter = get_salt_root_dirs()
 
     for start in starter:

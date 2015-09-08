@@ -19,14 +19,18 @@ class TestNaclFileUtils(unittest.TestCase):
     @mock.patch('nacl.fileutils.get_salt_root_dirs', return_value=['/bar'])
     @mock.patch('os.walk',
                 return_value=[('/fooo/.git', 'dirname', 'filename')])
-    def test_get_dir_list_from_filesystem_foo_git(self,
-                                                  mock_gsrd,
-                                                  mock_oswalk):
+    def test_get_dir_list_from_filesystem_filter_set(self,
+                                                     mock_gsrd,
+                                                     mock_oswalk):
         self.assertEqual(['/fooo/.git'], get_dir_list_from_filesystem('*.git'))
 
-    def test_get_dir_list_from_filesystem(self):
-        """ Only checks whether a list is returned """
-        self.assertEqual([], get_dir_list_from_filesystem())
+    @mock.patch('nacl.fileutils.get_salt_root_dirs', return_value=['/bar'])
+    @mock.patch('os.walk',
+                return_value=[('/fooo/.git', 'dirname', 'filename')])
+    def test_get_dir_list_from_filesystem_no_filter(self,
+                                                    mock_gsrd,
+                                                    mock_oswalk):
+        self.assertEqual(['/fooo/.git'], get_dir_list_from_filesystem())
 
 
 if __name__ == '__main__':

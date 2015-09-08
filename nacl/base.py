@@ -14,7 +14,7 @@ import os
 
 
 def get_salt_root_dirs():
-    """ return the root of the salt pillars, states, formulas etc. """
+    """ return root of the salt pillars, states, formulas etc. as a list """
 
     salt_master_config = salt.config.client_config('/etc/salt/master')
 

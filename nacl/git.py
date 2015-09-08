@@ -29,7 +29,7 @@ def list_salt_git_repositories():
     they have uncommitted changes or not and list them in a pretty way.
     """
 
-    git_repo_list = get_dir_list_from_filesystem('*.git')
+    git_repo_list = get_dir_list_from_filesystem()
 
     # Some Header
     # Fix this: Use a decorator for printing out stuff instead
@@ -54,7 +54,7 @@ def merge_all_repositories():
     merge_git_repo is tested as well as get_dir_list_from_filesystem.
     So no further tests intended.
     """
-    git_repo_list = get_dir_list_from_filesystem('*.git')
+    git_repo_list = get_dir_list_from_filesystem()
     for git_repo in git_repo_list:
         merge_git_repo(git_repo)
 
@@ -249,7 +249,7 @@ def get_local_url_list():
     """ Get a list off all local repositories remote url's """
 
     url_list = []
-    for repo in get_dir_list_from_filesystem('*.git'):
+    for repo in get_dir_list_from_filesystem():
         os.chdir(repo[:-4])
         url_list.append(git(['config', '--get', 'remote.origin.url']).rstrip())
 
