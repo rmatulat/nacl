@@ -21,15 +21,12 @@ from nacl.exceptions import GitCallError
 
 
 @log
-def list_git_repositories():
+def list_salt_git_repositories():
     """
     Printout all salt related git repos and their state
 
     Using a list of local git repositories to check whether
     they have uncommitted changes or not and list them in a pretty way.
-    TODO: This is not testable.
-    TODO: The function name is not well chosen.
-    TRY: Using a decorator may fix the testability?
     """
 
     git_repo_list = get_dir_list_from_filesystem('*.git')
@@ -417,32 +414,3 @@ def pretty_status():
     _ret['dir_name'] = os.getcwd()
 
     return _ret
-
-
-# def initial_clone(repository=None, destination=None, proxy=None):
-
-#     if repository is None or destination is None:
-#         sys.stderr.write("Die Angaben zum Git Repo oder zum Zielort des git clone dürfen nicht leer sein!")
-#         sys.exit(1)
-
-#     # es wird in ein temp Verzeichnis geclont, weil i.d.R. das eigentliche
-#     # Zielverzeichnis schon vorhanden ist und ein `git clone` mit einem Fehler abbrechen
-#     # würde.
-
-#     tmp_dir = "/tmp/" + id_generator()
-
-#     # Fürs Clonen aus dem Internet müssen wir eine Umgebungsvariable setzen,
-#     # nämlich `https_proxy`
-#     if proxy is not None:
-#         env = {'https_proxy': proxy}
-#     else:
-#         env = {}
-#     # Clonen
-#     pprint(git(['clone', repository, tmp_dir], env=env))
-
-#     # Dateien an den eigentlichen Ort bringen.
-#     # rsync hat im Zusammenhang mit Python hier am Besten funktioniert.
-#     call(["rsync", "-a", tmp_dir + "/", destination])
-
-#     # Aufräumen
-#     pprint(call(['rm', '-rf', tmp_dir]))

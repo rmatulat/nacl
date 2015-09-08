@@ -31,7 +31,7 @@ Options:
 # to remember:
 # http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html
 
-from nacl.git import list_git_repositories
+from nacl.git import list_salt_git_repositories
 from nacl.git import change_or_create_branch
 from nacl.git import checkout_branch
 from nacl.git import merge_all_repositories
@@ -59,7 +59,7 @@ init_nacl()
 
 # list all git repositories
 if arguments['list'] or arguments['l']:
-    list_git_repositories()
+    list_salt_git_repositories()
 
 if arguments['branch'] or arguments['b']:
     change_or_create_branch(arguments['BRANCH'])

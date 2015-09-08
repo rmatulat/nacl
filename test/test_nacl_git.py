@@ -16,7 +16,7 @@ from nacl.git import get_current_branch
 from nacl.git import get_local_url_list
 from nacl.git import git
 from nacl.exceptions import GitCallError
-from nacl.git import list_git_repositories
+from nacl.git import list_salt_git_repositories
 from nacl.git import remote_diff
 from nacl.git import checkout_branch
 from nacl.git import change_or_create_branch
@@ -161,14 +161,14 @@ class TestNaclGit(unittest.TestCase):
     def test_git_providing_env(self, mock_wait, mock_communicate):
         self.assertEquals('foo', git(['foo'], env={'foo': 'bar'}))
 
-    # list_git_repositories (partly)
+    # list_salt_git_repositories (partly)
     #
     # THIS IS SPECIAL, AND I HAVE TO NOTE IT TO MYSELF:
     # It's about testing a decorated function.
     #
-    # First: Note list_git_repositories._fn()
+    # First: Note list_salt_git_repositories._fn()
     # We are calling the origin func() that is stored in the decorators object
-    # variable _fn. We are NOT calling list_git_repositories() as it
+    # variable _fn. We are NOT calling list_salt_git_repositories() as it
     # will be decorated at execution with all the decoration actually done.
     #
     # NEXT GOTCHA, THAT TOOK ME HOURS TO FIGURE OUT:
@@ -189,8 +189,8 @@ class TestNaclGit(unittest.TestCase):
     # When changing the messages one has to change the tests as well!
 
     @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=[])
-    def test_list_git_repositories(self, mock_fu):
-        self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_git_repositories._fn())
+    def test_list_salt_git_repositories(self, mock_fu):
+        self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_salt_git_repositories._fn())
 
     # remote_diff()
 
