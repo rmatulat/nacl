@@ -7,9 +7,9 @@ Working with files
 Contains code for file operations in a very broad sense of
 it's meaning.
 """
-import salt.config
 from distutils import spawn
 from nacl.decorator import log
+from nacl.base import get_salt_root_dirs
 import fnmatch
 import os
 import json
@@ -22,30 +22,6 @@ def binary_exists(binary_name):
         return True
     else:
         return False
-
-
-def get_salt_root_dirs():
-    """
-    return the root of the salt pillars, states, formulas etc.
-
-    TODO: Move this to nacl.base
-    It looks like this is not a typical file related opetions and maybe
-    better placed at nacl.base.
-    """
-
-    salt_master_config = salt.config.client_config('/etc/salt/master')
-
-    dir_list = []
-
-    # parsing file_roots
-    for env, values in salt_master_config['file_roots'].iteritems():
-        dir_list.extend(values)
-
-    # parsing pillar root
-    for env, values in salt_master_config['pillar_roots'].iteritems():
-        dir_list.extend(values)
-
-    return sorted(set(dir_list))
 
 
 def get_dir_list_from_filesystem(filter=None):
