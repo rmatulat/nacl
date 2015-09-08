@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Some decorators
+Custom decorators
+
 TODO: Move everything to blessings
 SEE: https://pypi.python.org/pypi/blessings
 """

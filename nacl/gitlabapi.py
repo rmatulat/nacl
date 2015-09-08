@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# """ Handels calls to git hoster api like gitlab """
 
 import nacl.fileutils
 import nacl.git as ngit
@@ -10,9 +8,18 @@ import sys
 import pprint
 from vendor.gitlab import Gitlab
 
+"""
+TODO: Rename ngit to git if possible to keep in line with the
+naming in other modules.
+"""
+
 
 class GitLapApiCall(Gitlab):
-    """ Api Calls, we are doing based on Gitlab Class"""
+    """
+    Api Calls, we are doing based on Gitlab Class
+
+    It extends Gitlab with some helper functions we need mainly in nacl.flow.
+    """
 
     def __init__(self):
         self.config = nacl.fileutils.get_users_nacl_conf()
@@ -38,7 +45,8 @@ class GitLapApiCall(Gitlab):
         return seperator
 
     def get_project_id(self):
-        """ returns a gitlab Project ID """
+        """ Return a gitlab Project ID """
+
         if not ngit.is_git_repo():
             print(color('WARNING', 'Not a git repository'))
             sys.exit(1)
@@ -56,6 +64,7 @@ class GitLapApiCall(Gitlab):
 
     def get_group_id(self):
         """ Get the ID of our saltstack gitlab group """
+
         try:
             for group in self.getgroups():
                 if group['name'] == self.config['gitgroup']:
@@ -83,7 +92,7 @@ class GitLapApiCall(Gitlab):
         return True
 
     def is_mergerequest_open(self, mergerequest_id=None):
-        """ Check whether a mergerqeust is new """
+        """ Check whether a mergerqeust is open """
 
         if not mergerequest_id:
             raise ValueError("mergerequest_id must be provided")
@@ -96,8 +105,15 @@ class GitLapApiCall(Gitlab):
             return False
 
     def get_all_issues(self):
-        """ Gets all issues of a project """
+        """ Get all issues of a project """
 
+        """
+        TODO: Clean this up!
+        This is shit because we have to deal with a invalid p_id at a higher
+        level. That is valid for all other functions that need p_id.
+        At least we have to think about putting p_id (as well as g_id) into
+        class variables to clean up the code.
+        """
         p_id = self.get_project_id()
         issues = None
         if p_id:
@@ -108,17 +124,30 @@ class GitLapApiCall(Gitlab):
         return issues
 
     def get_all_mergerequests(self):
-        """ Returns a list of all mergerequests of a project """
+        """ Return a list of all mergerequests of a project """
+
         p_id = self.get_project_id()
         return self.getmergerequests(p_id)
 
     def list_group_members(self):
         """ Return a list with all project users  """
+
         g_id = self.get_group_id()
         return self.getgroupmembers(g_id)
 
     def get_my_issues(self):
         """ List all my open issues """
+
+        """
+        TODO: Clean this up!
+        This is shit as well because simply not needed.
+        We mighty use self.getissues().
+        Even if it is returning an empty list, we can use this instead of
+        explicitly returning false. It acts the same way while using something
+        like
+        if my_list:
+            foo()
+        """
         issues = self.getissues()
         if issues:
             return issues
@@ -126,7 +155,7 @@ class GitLapApiCall(Gitlab):
             return False
 
     def edit_issue(self, issue_id=None, **kwargs):
-        """ Closes an issue """
+        """ Close an issue """
 
         if not issue_id:
             raise ValueError('issue_id must be provided')
@@ -134,11 +163,15 @@ class GitLapApiCall(Gitlab):
         return self.editissue(p_id, issue_id, **kwargs)
 
     def issue_iid_to_uid(self, iid=None):
-        """ Takes a iid and gives the uid back.
-            This only works inside a project context, where every issue
-            has its own id (iid).
-            This is mainly a workaround for users when they are used to work
-            with the iid (like on the website) """
+        """
+        Convert the iid to the well known uid
+
+        Takes a iid and gives the uid back.
+        This only works inside a project context where every issue
+        has its own id (iid).
+        This is mainly a workaround for users when they are used to work
+        with the iid (like shown on the website).
+        """
         if not iid:
             raise ValueError('iid mus be provided')
 
@@ -150,7 +183,7 @@ class GitLapApiCall(Gitlab):
         return False
 
     def get_mergerequest_details(self, mergerequest_id):
-        """ Gets details of a mergerequest """
+        """ Get details of a mergerequest """
         values = {}
         p_id = self.get_project_id()
         values['changes'] = self.getmergerequestchanges(
@@ -160,13 +193,16 @@ class GitLapApiCall(Gitlab):
         return values
 
     def mr_is_mergeable(self, mergerequest_id=None):
-        """ Check whether a mergerequest can be merged without a conflict .
-            Workflow:
-            1. create a temporary copy of source_branch we like to check if it is mergeable
-            2. create a temporary copy of target_branch we like to check against
-            3. Try to merge the tmp_target_branch branch into tmp_source_branch
-            4. Return whether it is successfull or not
-            5. Cleanup tmp_branches
+        """
+        Is a MR ready to be merged?
+
+        Check whether a mergerequest can be merged without a conflict .
+        Workflow:
+        1. create a temporary copy of source_branch we like to check if it is mergeable
+        2. create a temporary copy of target_branch we like to check against
+        3. Try to merge the tmp_target_branch branch into tmp_source_branch
+        4. Return whether it is successfull or not
+        5. Cleanup tmp_branches
         """
         if not mergerequest_id:
             raise ValueError('mergerequest_id and/or branch must be provided')
@@ -213,7 +249,12 @@ class GitLapApiCall(Gitlab):
         return self.acceptmergerequest(p_id, mergerequest_id)
 
     def remote_branch_exists(self, branch=None, p_id=None):
-        """ Check if branch exits on remote"""
+        """ Check if branch exits on remote """
+
+        """
+        TODO: Why the hell must be the p_id be provided as a parameter.
+        We never do that in other functions of this class?
+        """
         if branch:
             try:
                 remote_branch = self.getbranch(p_id, branch)

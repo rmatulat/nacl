@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# """ Handels calls to git hoster api like gitlab """
+"""
+An API to gitlab and github instances
+
+WARNING: This module is a complete failure by now.
+It is not doing what it was supposed to do.
+We have to clean this up and spend some time to either refactor it out
+completly or make it useable as an api for nacl.flow so that we can
+switch between gitlab and github by using an config attribute.
+"""
 
 import nacl.fileutils
 from nacl.decorator import log
@@ -15,7 +23,13 @@ def get_gitgitlab_handle(host, my_token):
 
 
 def clean_up_repositories(repo_dict, ignore_list):
-    """ Cleans up a dict and removes repositories that should be ignored """
+    """
+    Cleans up a dict and removes repositories that should be ignored
+
+    TODO: Move this to nacl.helper and give it a more meanigfull name.
+    It is more like a negative_merge_dictionary kind of thing that could
+    be used for more than this purpose.
+    """
     for i in ignore_list:
         repo_dict.pop(i, None)
     return repo_dict
@@ -25,9 +39,9 @@ def clean_up_repositories(repo_dict, ignore_list):
 def get_remote_url_dict():
     """
     Get a list of all remote repository urls (like from an gitlab instance).
+
     All repositories have to be organized in a group, so that we have a
     starting point to look at.
-    TODO: Make this testable. Currently it's not.
     """
 
     _ret = []
@@ -66,4 +80,3 @@ def get_remote_url_dict():
                      "Git group not found: %s" % config['gitgroup'],
                      1))
         return _ret
-

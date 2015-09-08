@@ -1,28 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Handles git related stuff """
-# import sys
+"""
+nacl-git module
+
+This is an abstraction for some raw stuff with the git command
+itself and also the main module for the nacl-git command.
+"""
+
 import os.path
 import os
-# from subprocess import call
 from subprocess import Popen, PIPE
-from pprint import pprint
+# from pprint import pprint
 from nacl.helper import color, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.fileutils import get_users_nacl_conf
 import nacl.gitapi
 from nacl.decorator import log, ListLine
 from nacl.exceptions import GitCallError
-import pprint
 
 
 @log
 def list_git_repositories():
-    """ using a list of local git repositories to check whether
-        they have uncommitted changes or not and list them in a pretty way.
-        TODO: This is not testable
-        TRY: Using a decorator may fix the testability?
+    """
+    Printout all salt related git repos and their state
+
+    Using a list of local git repositories to check whether
+    they have uncommitted changes or not and list them in a pretty way.
+    TODO: This is not testable.
+    TODO: The function name is not well chosen.
+    TRY: Using a decorator may fix the testability?
     """
 
     git_repo_list = get_dir_list_from_filesystem('*.git')
@@ -41,11 +48,14 @@ def list_git_repositories():
 
 
 def merge_all_repositories():
-    """ Merge all repositories at once when origin/master is ahead
-        and the repository is clean.
-        We will merge into local master!
-        merge_git_repo is tested as well as get_dir_list_from_filesystem.
-        So no further tests intended.
+    """
+    Check every salt related git repo and merge if needed
+
+    Merge all repositories at once when origin/master is ahead
+    and the repository is clean.
+    We will merge into local master!
+    merge_git_repo is tested as well as get_dir_list_from_filesystem.
+    So no further tests intended.
     """
     git_repo_list = get_dir_list_from_filesystem('*.git')
     for git_repo in git_repo_list:
@@ -53,13 +63,19 @@ def merge_all_repositories():
 
 
 def merge_single_repository():
-    """" Merges a single remote repo into the local branch. """
+    """" Merge a single remote repo into the local branch. """
     merge_git_repo()
 
 
 @log
 def merge_git_repo(git_repo_name=None):
-    """ Do the heavy lifting of a merge """
+    """
+    Merge a single git repository with origin/master
+
+    Merge origin/master into local master branch.
+    If another branch is active, we will switch to master and back again
+    after the merge is done.
+    """
 
     _ret = []
 
@@ -100,7 +116,7 @@ def merge_git_repo(git_repo_name=None):
         git(['merge', '--ff-only', 'origin/master'])
         _ret.append(('INFO', 'Merge complete!'))
     except GitCallError as e:
-        _ret.append(('INFO', 'Merge failed: {0}'.format(e)))
+        _ret.append(('INFO', 'Merge failed: {0}'.format(e.message)))
 
     # Switch back to prvevious branch
     if branch != 'master':
@@ -130,7 +146,8 @@ def remote_diff():
 
 
 @log
-def checkout_branch(branch):
+def checkout_branch(branch=None):
+    """ Checkout specified branch or master as default """
 
     print_is_git_repo()
 
@@ -152,7 +169,13 @@ def checkout_branch(branch):
 
 
 def is_git_repo(dir_name=None):
-    """ Return whether it is a git repo or not """
+    """
+    Return whether it is a git repo or not
+
+    TODO: Make this more flexible. It only works if the command is
+    run at the same directory as the .git directory is located. It is not
+    working out of a subdir.
+    """
     if dir_name is None:
         return os.path.exists('.git')
     else:
@@ -171,7 +194,7 @@ def get_all_branches():
     return git(['for-each-ref', '--format="%(refname:short)"', 'refs/heads/']).replace('"', '').split()
 
 
-def branch_exist(branch):
+def branch_exist(branch=None):
     """ Check whether a branch already exists """
     exiting_branches = get_all_branches()
     for existing_branch in exiting_branches:
@@ -187,6 +210,7 @@ def change_or_create_branch(branch=None):
     _ret = []
 
     print_is_git_repo()
+
     if branch is None:
         _ret.append(('INFO', git(['branch']).rstrip()))
     elif branch is not None and branch_exist(branch) is False:
@@ -204,6 +228,8 @@ def change_or_create_branch(branch=None):
 @log
 def remote_prune():
     """
+    Housekeeping of staled refs
+
     Removes staled remote refs (like old feature branches at the
     remote, that have been merged and deleted)
     """
@@ -224,6 +250,7 @@ def remote_prune():
 
 def get_local_url_list():
     """ Get a list off all local repositories remote url's """
+
     url_list = []
     for repo in get_dir_list_from_filesystem('*.git'):
         os.chdir(repo[:-4])
@@ -234,14 +261,15 @@ def get_local_url_list():
 
 def compare_remote():
     """
+    Try to find differences between local and remote repositories
+
     Compare the existence of remote and local git repositories and show
     missing local repositories.
     """
     local_repo_urls = get_local_url_list()
+    remote_url_dict = nacl.gitapi.get_remote_url_dict()
 
     print(color("FAIL", "WARNING: This list might be inaccurate!\n It will list remote git repositories, that are not in one of our salt environments!\n That might be ok!\n"))
-
-    remote_url_dict = nacl.gitapi.get_remote_url_dict()
 
     for url, desc in remote_url_dict.iteritems():
         if url not in local_repo_urls:
@@ -252,9 +280,12 @@ def compare_remote():
 
 
 def git(args, env={}):
-    """ @args: list
-        @env: dict
-        Some kind of git wrapping
+    """
+    The main git command wrapper
+
+    Expects a list of args (e.g. ['diff']) and returns the git command output.
+    Parameter env is used to append environment vars to ENV like a
+    proxy setting.
     """
 
     user_config = get_users_nacl_conf()
@@ -309,17 +340,16 @@ def is_commit_on_remote(sha=None, branch='master'):
         raise ValueError("sha must be provided")
 
 
-def need_pull_push(return_returncode=False, local_branch='master', remote_branch='master'):
+def need_pull_push(return_returncode=False,
+                   local_branch='master',
+                   remote_branch='master'):
     """ Check whether we need to push or pull """
+
     git(['remote', 'update'])
 
     local = git(['rev-parse', local_branch])
     remote = git(['rev-parse', 'origin/' + remote_branch])
     base = git(['merge-base', local_branch, 'origin/' + remote_branch])
-
-    # print "LOCAL: " + local
-    # print "REMOTE: " + remote
-    # print "BASE: " + base
 
     if local == remote:
         answer = "Up-to-date"
@@ -342,12 +372,13 @@ def need_pull_push(return_returncode=False, local_branch='master', remote_branch
 
 def get_current_branch():
     """ Returns the current active branch """
-    branch = git(['rev-parse', '--abbrev-ref', 'HEAD'])
-    return branch.rstrip()
+
+    return git(['rev-parse', '--abbrev-ref', 'HEAD']).rstrip()
 
 
 def is_merged(branch):
     """ Check whether a local branch is already merged into origin/master """
+
     git(['remote', 'update'])
     local = git(['rev-parse', '@']).rstrip()
     remote = git(['merge-base', local, 'origin/master']).rstrip()

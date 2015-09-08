@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Contains code for file operations in a very broad sense of
-    it's meaning."""
+"""
+Working with files
+
+Contains code for file operations in a very broad sense of
+it's meaning.
+"""
 import salt.config
 from distutils import spawn
 from nacl.decorator import log
@@ -12,7 +16,7 @@ import json
 
 
 def binary_exists(binary_name):
-    """ checks whether a binary exists."""
+    """ checks whether a binary exists. """
     binary_path = spawn.find_executable(binary_name)
     if binary_path:
         return True
@@ -21,11 +25,18 @@ def binary_exists(binary_name):
 
 
 def get_salt_root_dirs():
-    """ return the root of the salt pillars, states, formulas etc."""
+    """
+    return the root of the salt pillars, states, formulas etc.
+
+    TODO: Move this to nacl.base
+    It looks like this is not a typical file related opetions and maybe
+    better placed at nacl.base.
+    """
 
     salt_master_config = salt.config.client_config('/etc/salt/master')
 
     dir_list = []
+
     # parsing file_roots
     for env, values in salt_master_config['file_roots'].iteritems():
         dir_list.extend(values)
@@ -38,7 +49,16 @@ def get_salt_root_dirs():
 
 
 def get_dir_list_from_filesystem(filter=None):
-    """ returns a list of local directories (e.g with .git in it's name) """
+    """
+    Returns a list of salt directories
+
+    Its purpose is to return a list of pillar- and state directories.
+
+    TODO:
+    It is only used to return directories with git repos in it.
+    So we can remove the filter=None parameter and rename the function to
+    make it a bit more descriptive.
+    """
 
     matches = []
     if filter is None:
@@ -56,7 +76,13 @@ def get_dir_list_from_filesystem(filter=None):
 
 @log
 def get_users_nacl_conf():
-    """ returns the users nacl configuration """
+    """
+    returns the users nacl configuration
+
+    TODO: Move this to nacl.base
+    It looks like this is not a typical file related opetions and maybe
+    better placed at nacl.base.
+    """
 
     user_home = os.path.expanduser("~")
     user_config = {}

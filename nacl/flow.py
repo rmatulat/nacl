@@ -1,7 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# """ regarding git-flow """
+"""
+nacl-flow module
+
+All heavy lifting for nacl-flow is done here.
+By now flow only interacts with gitlab.
+
+It was intended to be more flexible so that it can operate with github
+as well. But there are some major design flaws done while development.
+For example there is no proper abstraction of gitlab and github calls (there
+is actually no abstraction at all).
+"""
 import nacl.gitlabapi as api
 from nacl.helper import query_yes_no
 import nacl.git as git
@@ -10,13 +20,30 @@ import pprint
 
 
 class NaclFlow(object):
+    """
+    Abstraction of the nacl-flow workflow
+
+    Most functions are decorated with the @log decorator because the results
+    have to be displayed to the user interacting with the salt repositories.
+    To make functions testable the output is done by @log.
+    """
 
     def __init__(self):
+        """
+        Initialize the api.
+
+        At some point in time we have to make this more flexible for
+        a use with different APIs like the one of github.
+        """
         self.api = api.GitLapApiCall()
 
     @log
     def get_all_issues(self, all=None):
-        """ Gets all issues of a project """
+        """
+        Get all issues of a project
+
+        If 'all' is not provided just the open issues are returned.
+        """
 
         _ret = []
 
@@ -45,7 +72,11 @@ class NaclFlow(object):
 
     @log
     def get_my_issues(self, all=None):
-        """ List all my open issues """
+        """
+        List the callers issues
+
+        As long as 'all' is not set only open issues are shown.
+        """
         issues = self.api.get_my_issues()
 
         _ret = []
@@ -73,7 +104,11 @@ class NaclFlow(object):
 
     @log
     def edit_issue(self, issue_id=None, do=None):
-        """ Close or reopen an issue """
+        """
+        Close or reopen an issue
+
+        'do' must be 'close' or 'reopen'
+        """
 
         _ret = []
 
@@ -114,8 +149,16 @@ class NaclFlow(object):
 
     @log
     def write_patch_for_issue(self, issue_id=None):
-        """ Workflow for resolving an issue, step 1:
-            Open a branch """
+        """
+        Start a patch
+
+        This is intended to be the first step in a process of providing
+        a patch.
+        Every patch should be written in its own branch. Therefore we
+        provide a simple cmd to create a meaningfull named branch related to
+        its issue. Thats why the issue id must be provided.
+        There some consistency checks around starting a new branch.
+        """
 
         _ret = []
 
@@ -165,7 +208,26 @@ class NaclFlow(object):
 
     @log
     def commit_patch(self, assignee_id=None, mr_text=None):
-        """ Commit the patch and provide a mergerequest """
+        """
+        Commit the patch and provide a mergerequest
+
+        The main problem is to avoid CONFLICTs while accepting a MR in
+        accept_mergerequest().
+        To support that we check if origin/master can be merged to our
+        issue branch. If not the committer has to solve the conflict first
+        before the patch might be submitted.
+
+        Btw we force the committer not to use the master branch of the
+        repository because we want to keep it clean as far as possible.
+
+        After the patch is pushed to the remote as a new branch the MR
+        will be created.
+
+        TODO:
+        rename function to push_patch() because there is 'git commit'
+        done here. We just keep track of the push-workflow so the mention of
+        the word 'commit' might be mistaken.
+        """
 
         _ret = []
 
@@ -187,7 +249,7 @@ class NaclFlow(object):
         # 1. Check whether the current commit is already in
         #    the remote master branch
         # 2. If not if we need to push our local changes to the
-        #    remote. There might be 2 reasons:
+        #    remote. There might be 3 reasons:
         #   - The source_branch of the mergerequest doesn't exists
         #     on the remote.
         #   - If there is no source_branch, we have to merge
@@ -196,7 +258,7 @@ class NaclFlow(object):
         #   - The source_branch exists but we have new commits for that MR
         #
         #  We now have our local changes at the remote in a seperate branch.
-        #  So wen move on:
+        #  Move on:
         #
         #  3. If there is no MR present, create one.
         #
@@ -368,12 +430,14 @@ class NaclFlow(object):
 
     @log
     def accept_mergerequest(self, mergerequest_id=None):
-        """ Accept a mergerequest
-            That has to have an awful workflow, because we want to ensure
-            that the MR may merge and will not cause any CONFLICT's.
-            CONFLICT's are not a complete desaster, but we like to have the
-            author of a patch tp be resonsible for that, and not the one
-            who accepts the MR.
+        """
+        Accept a mergerequest
+
+        That has to have an awful workflow, because we want to ensure
+        that the MR may merge and will not cause any CONFLICT's.
+        CONFLICT's are not a complete desaster but we like to have the
+        author of a patch to be responsible for that and not the one
+        who accepts the MR.
         """
 
         _ret = []
@@ -422,7 +486,7 @@ class NaclFlow(object):
 
     @log
     def get_commit(self, commit=None):
-        """ Displays a commit """
+        """ Display a commit """
 
         _ret = []
 

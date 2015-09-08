@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Helper functions that aren't fit anywhere else
+"""
 import random
 import string
 import sys
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    """ Generate an UPPERCASE-DIGIT random string """
     return ''.join(random.choice(chars) for _ in range(size))
 
 
 def color(level, string):
-    """ Colorize strings """
+    """ Colorize strings. Used for pretty outputs. """
     colors = {
         'HEADER': '\033[95m',
         'OKBLUE': '\033[94m',
@@ -27,12 +31,13 @@ def color(level, string):
 
 
 def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
+    """
+    Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
+    It must be "yes" (the default), "no" or None (meaning
+    an answer is required of the user).
 
     The "answer" return value is True for "yes" or False for "no".
     """
@@ -60,7 +65,7 @@ def query_yes_no(question, default="yes"):
 
 
 def merge_two_dicts(x, y):
-    '''Given two dicts, merge them into a new dict as a shallow copy.'''
+    """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
     z.update(y)
     return z

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import unittest
+# import unittest
 
 
-class TestNaclBase(unittest.TestCase):
+# class TestNaclBase(unittest.TestCase):
 
-    def test_base_exists(self):
-        import nacl.base
-        self.assertEqual(nacl.base.return_true(), True)
+#     def test_base_exists(self):
+#         import nacl.base
+#         self.assertEqual(nacl.base.return_true(), True)
 
-if __name__ == '__main__':
-    unittest.main()
+# if __name__ == '__main__':
+#     unittest.main()
