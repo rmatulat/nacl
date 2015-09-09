@@ -37,6 +37,7 @@ class NaclFlow(object):
         a use with different APIs like the one of github.
         """
         self.api = api.GitLapApiCall()
+        self.p_id = self.api.get_project_id()
 
     @log
     def get_all_issues(self, all=None):
@@ -179,18 +180,16 @@ class NaclFlow(object):
                 "Your branch is not clean. Please commit your changes first."))
             return _ret
 
-        p_id = self.api.get_project_id()
-
         # Transform iid to id
         try:
             issue_uid = self.api.issue_iid_to_uid(issue_id)
 
-            issue = self.api.getprojectissue(p_id, issue_uid)
+            issue = self.api.getprojectissue(self.p_id, issue_uid)
             if not issue:
                 _ret.append(('WARNING', "Issue ID not found", 1))
                 return _ret
 
-            if issue['project_id'] != p_id:
+            if issue['project_id'] != self.p_id:
                 _ret.append((
                     'WARNING',
                     "The issue ID does not correspond to the current " +
@@ -274,14 +273,13 @@ class NaclFlow(object):
 
         need_push = False
 
-        p_id = self.api.get_project_id()
         sourcebranch = git.get_current_branch()
 
         _ret.append(('GREEN', 'Branch: {0}'.format(sourcebranch)))
 
         # First check whether the MR branch exists on the remote
         sourcebranch_on_remote = self.api.remote_branch_exists(
-            sourcebranch, p_id)
+            sourcebranch, self.p_id)
 
         if not sourcebranch_on_remote:
             need_push = True
@@ -345,7 +343,7 @@ class NaclFlow(object):
         if is_new_mergerequest:
             _ret.append(('GREEN', "Create a new mergerequest"))
             self.api.createmergerequest(
-                p_id,
+                self.p_id,
                 sourcebranch,
                 targetbranch,
                 title,
@@ -460,8 +458,10 @@ class NaclFlow(object):
                 _ret.append((
                     'FAIL',
                     "Mergerequest would not merge into origin/master", 1))
-                p_id = self.api.get_project_id()
-                self.api.addcommenttomergerequest(p_id, mergerequest_id, 'Could not be merged due to CONFLICTs')
+
+                self.api.addcommenttomergerequest(
+                    self.p_id, mergerequest_id,
+                    'Could not be merged due to CONFLICTs')
                 return _ret
 
             if return_values and return_values['state'] == 'merged':
@@ -490,9 +490,8 @@ class NaclFlow(object):
             _ret.append(('FAIL', "Commit SHA must be provided"))
             return _ret
 
-        p_id = self.api.get_project_id()
-        details = self.api.getrepositorycommit(p_id, commit)
-        diffs = self.api.getrepositorycommitdiff(p_id, commit)
+        details = self.api.getrepositorycommit(self.p_id, commit)
+        diffs = self.api.getrepositorycommitdiff(self.p_id, commit)
 
         if details:
             _ret.append(('BOLD', "COMMIT: {0}".format(commit)))
