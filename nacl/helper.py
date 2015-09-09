@@ -80,12 +80,12 @@ def clean_up_dict(clean_dict, ignore_list):
     return clean_dict
 
 
-def check_string_to_int(my_int):
+def check_string_to_int(int_string):
     """ Check whether a string can be converted to int """
     try:
-        if my_int[0] in ('-', '+'):
-            return my_int[1:].isdigit()
+        if int_string[0] in ('-', '+'):
+            return int_string[1:].isdigit()
     except TypeError:
-        return int(my_int)
+        return int(int_string)
 
-    return my_int.isdigit()
+    return int_string.isdigit()
