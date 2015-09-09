@@ -23,7 +23,9 @@ class TestNaclGitLapApiCall(unittest.TestCase):
     @mock.patch(
         "nacl.gitlabapi.get_users_nacl_conf",
         side_effect=[fake_config])
-    def setUp(self, config_mock):
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_project_id',
+                return_value=123)
+    def setUp(self, config_mock, mock_pid):
         self.git = GitLapApiCall()
 
     # get_project_id
@@ -159,27 +161,21 @@ class TestNaclGitLapApiCall(unittest.TestCase):
         self.assertFalse(self.git.is_mergerequest_open(1))
 
     # get_all_issues()
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.get_project_id",
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.getprojectissues",
                 return_value=False)
     def test_get_all_issues_raises(self, mock):
         self.assertRaises(TypeError, self.git.get_all_issues)
 
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.get_project_id",
-                return_value=22)
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getprojectissues",
                 return_value={'foo': 'bar'})
     def test_get_all_issues_returns_something(self,
-                                              mock_get_p_id,
                                               mock_get_p_issues):
         self.assertEqual(self.git.get_all_issues(), {'foo': 'bar'})
 
     # get_all_mergerequests()
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.get_project_id",
-                return_value=22)
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
                 return_value={'foo': 'bar'})
     def test_get_all_mergerequests(self,
-                                   mock_p_id,
                                    mock_get_mr):
         self.assertEqual(self.git.get_all_mergerequests(), {'foo': 'bar'})
 
@@ -208,11 +204,9 @@ class TestNaclGitLapApiCall(unittest.TestCase):
     def test_edit_issue(self):
         self.assertRaises(ValueError, self.git.edit_issue)
 
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.get_project_id",
-                return_value=22)
     @mock.patch("nacl.gitlabapi.GitLapApiCall.editissue",
                 return_value={'foo': 'bar'})
-    def test_edit_issue_returns_something(self, mock_p_id, mock_ei):
+    def test_edit_issue_returns_something(self, mock_ei):
         self.assertEqual(self.git.edit_issue(11), {'foo': 'bar'})
 
     # issue_iid_to_uid()
@@ -318,11 +312,9 @@ class TestNaclGitLapApiCall(unittest.TestCase):
     def test_accept_mergerequest(self):
         self.assertRaises(ValueError, self.git.accept_mergerequest)
 
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.get_project_id",
-                return_value=22)
     @mock.patch("nacl.gitlabapi.GitLapApiCall.acceptmergerequest",
                 return_value=True)
-    def test_accept_mergerequest_true(self, mock_get_p_id, mock_am):
+    def test_accept_mergerequest_true(self, mock_am):
         self.assertTrue(self.git.accept_mergerequest(666))
 
     # remote_branch_exists()
@@ -332,9 +324,9 @@ class TestNaclGitLapApiCall(unittest.TestCase):
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getbranch",
                 return_value='foo')
     def test_remote_branch_remote_exists(self, mock):
-        self.assertTrue(self.git.remote_branch_exists('foo', 66))
+        self.assertTrue(self.git.remote_branch_exists('foo'))
 
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getbranch",
                 side_effect=[Exception('boo')])
     def test_remote_branch_raises(self, mock):
-        self.assertFalse(self.git.remote_branch_exists('foo', 66))
+        self.assertFalse(self.git.remote_branch_exists('foo'))

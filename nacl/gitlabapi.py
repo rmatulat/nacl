@@ -22,6 +22,7 @@ class GitLapApiCall(Gitlab):
             self.config['gitapiserver'],
             token=self.config['gitapitoken']
         )
+        self.p_id = self.get_project_id()
 
     def _get_seperator(self):
         """ Get the seperator for splitting up the remote.origin.url """
@@ -74,8 +75,7 @@ class GitLapApiCall(Gitlab):
         if not sourcebranch or not targetbranch:
             raise ValueError("sourcebranch and targetbranch must be provided")
 
-        p_id = self.get_project_id()
-        mergerequests = self.getmergerequests(p_id)
+        mergerequests = self.getmergerequests(self.p_id)
         for mergerequest in mergerequests:
             if mergerequest['state'] == 'closed' or \
                mergerequest['state'] == 'merged':
@@ -102,27 +102,16 @@ class GitLapApiCall(Gitlab):
     def get_all_issues(self):
         """ Get all issues of a project """
 
-        """
-        TODO: Clean this up!
-        This is shit because we have to deal with a invalid p_id at a higher
-        level. That is valid for all other functions that need p_id.
-        At least we have to think about putting p_id (as well as g_id) into
-        class variables to clean up the code.
-        """
-        p_id = self.get_project_id()
-        issues = None
-        if p_id:
-            issues = self.getprojectissues(p_id)
+        issues = self.getprojectissues(self.p_id)
+        if issues:
+            return issues
         else:
             raise TypeError("No Project ID found!")
-
-        return issues
 
     def get_all_mergerequests(self):
         """ Return a list of all mergerequests of a project """
 
-        p_id = self.get_project_id()
-        return self.getmergerequests(p_id)
+        return self.getmergerequests(self.p_id)
 
     def list_group_members(self):
         """ Return a list with all project users  """
@@ -154,8 +143,8 @@ class GitLapApiCall(Gitlab):
 
         if not issue_id:
             raise ValueError('issue_id must be provided')
-        p_id = self.get_project_id()
-        return self.editissue(p_id, issue_id, **kwargs)
+
+        return self.editissue(self.p_id, issue_id, **kwargs)
 
     def issue_iid_to_uid(self, iid=None):
         """
@@ -180,11 +169,11 @@ class GitLapApiCall(Gitlab):
     def get_mergerequest_details(self, mergerequest_id):
         """ Get details of a mergerequest """
         values = {}
-        p_id = self.get_project_id()
+
         values['changes'] = self.getmergerequestchanges(
-            p_id, mergerequest_id)
+            self.p_id, mergerequest_id)
         values['comments'] = self.getmergerequestcomments(
-            p_id, mergerequest_id)
+            self.p_id, mergerequest_id)
         return values
 
     def mr_is_mergeable(self, mergerequest_id=None):
@@ -240,19 +229,14 @@ class GitLapApiCall(Gitlab):
         if not mergerequest_id:
             raise ValueError('mergerequest_id must be provided')
 
-        p_id = self.get_project_id()
-        return self.acceptmergerequest(p_id, mergerequest_id)
+        return self.acceptmergerequest(self.p_id, mergerequest_id)
 
-    def remote_branch_exists(self, branch=None, p_id=None):
+    def remote_branch_exists(self, branch=None):
         """ Check if branch exits on remote """
 
-        """
-        TODO: Why the hell must be the p_id be provided as a parameter.
-        We never do that in other functions of this class?
-        """
         if branch:
             try:
-                remote_branch = self.getbranch(p_id, branch)
+                remote_branch = self.getbranch(self.p_id, branch)
                 return bool(remote_branch)
             except:
                 return False

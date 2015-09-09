@@ -68,6 +68,8 @@ class NaclFlow(object):
                     _ret.append((
                         'INFO', "ASSIGNEE: " + issue['assignee']['name']))
                 _ret.append(('INFO', '-' * 80))
+            if not _ret:
+                return [('INFO', 'No issues found')]
             return _ret
         else:
             return [('INFO', 'No issues found')]
@@ -278,8 +280,7 @@ class NaclFlow(object):
         _ret.append(('GREEN', 'Branch: {0}'.format(sourcebranch)))
 
         # First check whether the MR branch exists on the remote
-        sourcebranch_on_remote = self.api.remote_branch_exists(
-            sourcebranch, self.p_id)
+        sourcebranch_on_remote = self.api.remote_branch_exists(sourcebranch)
 
         if not sourcebranch_on_remote:
             need_push = True

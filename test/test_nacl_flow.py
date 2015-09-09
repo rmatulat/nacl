@@ -83,7 +83,8 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.gitlabapi.GitLapApiCall.get_all_issues',
                 return_value=issues_closed)
     def test_get_all_issues_issue_closed(self, mock):
-        self.assertEqual([], self.flow.get_all_issues._fn(self.flow))
+        self.assertEqual([('INFO', 'No issues found')],
+                         self.flow.get_all_issues._fn(self.flow))
 
     @mock.patch('nacl.gitlabapi.GitLapApiCall.get_all_issues',
                 return_value=issues_assignee)
