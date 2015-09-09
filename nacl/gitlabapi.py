@@ -23,7 +23,6 @@ class GitLapApiCall(Gitlab):
 
     def __init__(self):
         self.config = get_users_nacl_conf()
-        pprint.pprint(self.config)
         super(GitLapApiCall, self).__init__(
             self.config['gitapiserver'],
             token=self.config['gitapitoken']

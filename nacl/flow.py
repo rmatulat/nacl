@@ -13,6 +13,7 @@ For example there is no proper abstraction of gitlab and github calls (there
 is actually no abstraction at all).
 """
 import nacl.gitlabapi as api
+from nacl.helper import check_string_to_int
 from nacl.helper import query_yes_no
 import nacl.git as git
 from nacl.decorator import log
@@ -112,12 +113,11 @@ class NaclFlow(object):
 
         _ret = []
 
-        try:
-            issue_id = int(issue_id)
-        except ValueError:
+        if not check_string_to_int(issue_id):
             _ret.append(('WARNING', "ID must be an integer", 1))
             return _ret
 
+        issue_id = int(issue_id)
         issue_uid = self.api.issue_iid_to_uid(issue_id)
         if not issue_uid:
             _ret.append(('FAIL',
@@ -163,11 +163,11 @@ class NaclFlow(object):
         _ret = []
 
         # first we have to do a few consistency checks
-        try:
-            issue_id = int(issue_id)
-        except ValueError:
+        if not check_string_to_int(issue_id):
             _ret.append(('WARNING', "ID must be an integer", 1))
             return _ret
+
+        issue_id = int(issue_id)
 
         if not git.is_git_repo():
             _ret.append(('WARNING', "Not a git repository", 1))
@@ -327,11 +327,12 @@ class NaclFlow(object):
         # We are done with pushing commits.
         # Step 3. Creating a MR
         if assignee_id:
-            try:
-                assignee_id = int(assignee_id)
-            except ValueError:
+
+            if not check_string_to_int(assignee_id):
                 _ret.append(('WARNING', "ID must be an integer", 1))
                 return _ret
+
+            assignee_id = int(assignee_id)
 
         targetbranch = 'master'
         if mr_text:

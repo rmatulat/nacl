@@ -81,7 +81,12 @@ def clean_up_dict(clean_dict, ignore_list):
 
 
 def check_string_to_int(int_string):
-    """ Check whether a string can be converted to int """
+    """
+    Check whether a string can be converted to int
+
+    This is needed because when 'integers' are provided via the commandline,
+    they are strings and have to be converted.
+    """
     try:
         if int_string[0] in ('-', '+'):
             return int_string[1:].isdigit()
