@@ -80,13 +80,25 @@ class TestNaclGit(unittest.TestCase):
         self.assertFalse(is_merged("foo_branch"))
 
     # is_git_repo()
-    @mock.patch('os.path.exists', return_value=True)
-    def test_is_git_repo(self, os_mock):
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('nacl.git.git', return_value=True)
+    def test_is_git_repo(self, os_mock, mock_git):
         self.assertTrue(is_git_repo())
 
-    @mock.patch('os.path.exists', return_value=True)
-    def test_is_git_repo_with_dir_name(self, os_mock):
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('nacl.git.git', return_value=True)
+    def test_is_git_repo_with_dir_name(self, os_mock, mock_git):
         self.assertTrue(is_git_repo('foo'))
+
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('nacl.git.git', side_effect=GitCallError())
+    def test_is_git_repo_raises(self, os_mock, mock_git):
+        self.assertFalse(is_git_repo())
+
+    @mock.patch('os.chdir', return_value=True)
+    @mock.patch('nacl.git.git', side_effect=GitCallError())
+    def test_is_git_repo_with_dir_name_raises(self, os_mock, mock_git):
+        self.assertFalse(is_git_repo('foo'))
 
     # print_is_git_repo()
     @mock.patch('nacl.git.is_git_repo', return_value=False)

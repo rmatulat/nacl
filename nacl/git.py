@@ -166,17 +166,15 @@ def checkout_branch(branch=None):
 
 
 def is_git_repo(dir_name=None):
-    """
-    Return whether it is a git repo or not
+    """ Return whether it is a git repo or not """
+    if dir_name:
+        os.chdir(dir_name)
 
-    TODO: Make this more flexible. It only works if the command is
-    run at the same directory as the .git directory is located. It is not
-    working out of a subdir.
-    """
-    if dir_name is None:
-        return os.path.exists('.git')
-    else:
-        return os.path.exists(dir_name + '.git')
+    try:
+        git(['status', '-s'])
+        return True
+    except GitCallError:
+        return False
 
 
 @log
