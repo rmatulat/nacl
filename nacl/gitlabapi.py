@@ -2,16 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from nacl.base import get_users_nacl_conf
-import nacl.git as ngit
+import nacl.git as git
 from nacl.helper import color
 import sys
 import pprint
 from vendor.gitlab import Gitlab
-
-"""
-TODO: Rename ngit to git if possible to keep in line with the
-naming in other modules.
-"""
 
 
 class GitLapApiCall(Gitlab):
@@ -47,13 +42,13 @@ class GitLapApiCall(Gitlab):
     def get_project_id(self):
         """ Return a gitlab Project ID """
 
-        if not ngit.is_git_repo():
+        if not git.is_git_repo():
             print(color('WARNING', 'Not a git repository'))
             sys.exit(1)
 
         seperator = self._get_seperator()
 
-        remote = ngit.git(['config', '--get', 'remote.origin.url'])
+        remote = git.git(['config', '--get', 'remote.origin.url'])
         remote = remote.rstrip().split(seperator)[1]
 
         try:
@@ -208,37 +203,37 @@ class GitLapApiCall(Gitlab):
             raise ValueError('mergerequest_id and/or branch must be provided')
 
         mr_details = self.get_mergerequest_details(mergerequest_id)
-        current_branch = ngit.get_current_branch()
+        current_branch = git.get_current_branch()
         source_branch = mr_details['changes']['source_branch']
         target_branch = mr_details['changes']['target_branch']
 
         # Checkout the branches
         reverse_stash = False
-        if not ngit.branch_is_clean():
+        if not git.branch_is_clean():
             reverse_stash = True
-            ngit.git(['stash'])
+            git.git(['stash'])
 
-        ngit.git(['fetch', 'origin'])
-        ngit.git(['checkout', '-b', 'tmp_' + source_branch, 'origin/' + source_branch])
+        git.git(['fetch', 'origin'])
+        git.git(['checkout', '-b', 'tmp_' + source_branch, 'origin/' + source_branch])
 
-        ngit.git(['checkout', '-b', 'tmp_' + target_branch, 'origin/' + target_branch])
+        git.git(['checkout', '-b', 'tmp_' + target_branch, 'origin/' + target_branch])
 
         # Try to merge and cleanup
         try:
-            ngit.git(['merge', 'tmp_' + target_branch, 'tmp_' + source_branch])
-            ngit.git(['checkout', current_branch])
+            git.git(['merge', 'tmp_' + target_branch, 'tmp_' + source_branch])
+            git.git(['checkout', current_branch])
             if reverse_stash:
-                ngit.git(['stash', 'apply'])
-            ngit.git(['branch', '-D', 'tmp_' + source_branch])
-            ngit.git(['branch', '-D', 'tmp_' + target_branch])
+                git.git(['stash', 'apply'])
+            git.git(['branch', '-D', 'tmp_' + source_branch])
+            git.git(['branch', '-D', 'tmp_' + target_branch])
             return True
         except:
-            ngit.git(['merge', '--abort'])
-            ngit.git(['checkout', current_branch])
+            git.git(['merge', '--abort'])
+            git.git(['checkout', current_branch])
             if reverse_stash:
-                ngit.git(['stash', 'apply'])
-            ngit.git(['branch', '-D', 'tmp_' + source_branch])
-            ngit.git(['branch', '-D', 'tmp_' + target_branch])
+                git.git(['stash', 'apply'])
+            git.git(['branch', '-D', 'tmp_' + source_branch])
+            git.git(['branch', '-D', 'tmp_' + target_branch])
             return False
 
     def accept_mergerequest(self, mergerequest_id=None):
