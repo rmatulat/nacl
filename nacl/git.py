@@ -186,7 +186,9 @@ def print_is_git_repo():
 
 def get_all_branches():
     """ Return a list with all branches """
-    return git(['for-each-ref', '--format="%(refname:short)"', 'refs/heads/']).replace('"', '').split()
+    return git(['for-each-ref',
+                '--format="%(refname:short)"',
+                'refs/heads/']).replace('"', '').split()
 
 
 def branch_exist(branch=None):
@@ -285,9 +287,6 @@ def git(args, env={}):
 
     user_config = get_users_nacl_conf()
 
-    if env:
-        env = env
-
     # We have to merge the os.environment and env, because we need HOME!
     env = merge_two_dicts(env, os.environ)
 
@@ -377,18 +376,17 @@ def is_merged(branch):
     git(['remote', 'update'])
     local = git(['rev-parse', '@']).rstrip()
     remote = git(['merge-base', local, 'origin/master']).rstrip()
+
     if local == remote:
         return True
-    else:
-        return False
+    return False
 
 
 def print_merge_status(branch):
     """ Print out the merge status of branch """
     if is_merged(branch):
         return "(merged)"
-    else:
-        return "(unmerged)"
+    return "(unmerged)"
 
 
 @ListLine
