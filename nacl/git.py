@@ -134,7 +134,7 @@ def remote_diff():
 
     git(['fetch'])
     output = git(['diff', 'master', 'origin/master'])
-    if git(['diff', 'master', 'origin/master']):
+    if output:
         _ret.append(('INFO', output))
     else:
         _ret.append(('INFO', 'No diffs found'))
