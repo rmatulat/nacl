@@ -55,5 +55,15 @@ class TestNaclHelper(unittest.TestCase):
         result_dict = {'foo': 1, 'baz': 3}
         self.assertEqual(result_dict, nacl.helper.clean_up_dict(test_dict, test_ignore_list))
 
+    # check_int()
+    def test_check_int_1(self):
+        self.assertTrue(nacl.helper.check_string_to_int('1'))
+
+    def test_check_int_2(self):
+        self.assertTrue(nacl.helper.check_string_to_int(2))
+
+    def test_check_int_3(self):
+        self.assertFalse(nacl.helper.check_string_to_int('AA'))
+
 if __name__ == '__main__':
     unittest.main()

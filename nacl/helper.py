@@ -78,3 +78,14 @@ def clean_up_dict(clean_dict, ignore_list):
     for i in ignore_list:
         clean_dict.pop(i, None)
     return clean_dict
+
+
+def check_string_to_int(my_int):
+    """ Check whether a string can be converted to int """
+    try:
+        if my_int[0] in ('-', '+'):
+            return my_int[1:].isdigit()
+    except TypeError:
+        return int(my_int)
+
+    return my_int.isdigit()
