@@ -376,7 +376,7 @@ class NaclFlow(object):
 
         _ret = []
 
-        mergerequests = self.api.get_all_mergerequests()
+        mergerequests = self.api.getmergerequests(self.p_id)
         for mergerequest in mergerequests:
             if not all and mergerequest['state'] == 'closed' \
                or not all and mergerequest['state'] == 'merged':

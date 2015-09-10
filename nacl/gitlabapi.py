@@ -108,11 +108,6 @@ class GitLapApiCall(Gitlab):
         else:
             raise TypeError("No Project ID found!")
 
-    def get_all_mergerequests(self):
-        """ Return a list of all mergerequests of a project """
-
-        return self.getmergerequests(self.p_id)
-
     def list_group_members(self):
         """ Return a list with all project users  """
 

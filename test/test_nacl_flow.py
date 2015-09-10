@@ -568,7 +568,7 @@ class TestNaclFlow(unittest.TestCase):
     # list_all_mergerequests()
 
     # Only opened MR
-    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_all_mergerequests',
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
                 return_value=sample_mr_open_list)
     def test_list_all_mergerequests(self, mock):
         self.assertEquals([('INFO', 'TITLE: foo_title'),
@@ -582,7 +582,7 @@ class TestNaclFlow(unittest.TestCase):
                           self.flow.list_all_mergerequests._fn(self.flow))
 
     # List closed MR
-    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_all_mergerequests',
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
                 return_value=sample_mr_closed_list)
     def test_list_all_mergerequests_list_closed(self, mock):
         self.assertEquals([('INFO', 'TITLE: foo_title'),
@@ -596,7 +596,7 @@ class TestNaclFlow(unittest.TestCase):
                           self.flow.list_all_mergerequests._fn(self.flow, all='all'))
 
     # Closed MR (return of an empty list)
-    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_all_mergerequests',
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.getmergerequests',
                 return_value=sample_mr_closed_list)
     def test_list_all_mergerequests_closed(self, mock):
         self.assertEquals([], self.flow.list_all_mergerequests._fn(self.flow))
