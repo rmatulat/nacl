@@ -172,13 +172,6 @@ class TestNaclGitLapApiCall(unittest.TestCase):
                                               mock_get_p_issues):
         self.assertEqual(self.git.get_all_issues(), {'foo': 'bar'})
 
-    # get_all_mergerequests()
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
-                return_value={'foo': 'bar'})
-    def test_get_all_mergerequests(self,
-                                   mock_get_mr):
-        self.assertEqual(self.git.get_all_mergerequests(), {'foo': 'bar'})
-
     # list_group_members()
     @mock.patch("nacl.gitlabapi.GitLapApiCall.get_group_id",
                 return_value=22)
@@ -188,17 +181,6 @@ class TestNaclGitLapApiCall(unittest.TestCase):
                                 mock_g_id,
                                 mock_get_gm):
         self.assertEqual(self.git.list_group_members(), {'foo': 'bar'})
-
-    # get_my_issues()
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.getissues",
-                return_value={'foo': 'bar'})
-    def test_get_my_issues(self, mock):
-        self.assertEqual(self.git.get_my_issues(), {'foo': 'bar'})
-
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.getissues",
-                return_value=False)
-    def test_get_my_issues_false(self, mock):
-        self.assertFalse(self.git.get_my_issues())
 
     # edit_issue()
     def test_edit_issue(self):
