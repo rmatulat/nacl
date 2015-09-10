@@ -68,7 +68,6 @@ def log(func):
                 raise ValueError('tuple must contain 2 or 3 elements!')
 
             if level == 'INFO':
-                # pprint.pprint(msg)
                 sys.stdout.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
             else:
                 sys.stderr.write(u'[ {0} ] {1}'.format(show_lvl, color(level, msg)) + '\n')
