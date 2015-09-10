@@ -24,6 +24,10 @@ from nacl.git import merge_git_repo
 from nacl.git import remote_prune
 from nacl.git import pretty_status
 from nacl.git import print_merge_status
+from nacl.git import get_user_name
+from nacl.git import get_user_email
+from nacl.git import set_user_name
+from nacl.git import set_user_email
 
 
 class TestNaclGit(unittest.TestCase):
@@ -147,6 +151,36 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.git', side_effect=["master"])
     def test_get_current_branch(self, mock):
         self.assertEqual(get_current_branch(), "master")
+
+    # get_user_name()
+
+    @mock.patch('nacl.git.git', return_value='John Doe\n')
+    def test_get_user_name_1(self, mock_git):
+        self.assertEqual('John Doe', get_user_name())
+
+    # get_user_email()
+
+    @mock.patch('nacl.git.git', return_value='jane@doe.com\n')
+    def test_get_user_email_1(self, mock_git):
+        self.assertEqual('jane@doe.com', get_user_email())
+
+    # set_user_name()
+    @mock.patch('nacl.git.git', return_value=None)
+    def test_set_user_name_1(self, mock_git):
+        self.assertRaises(ValueError, lambda: set_user_name())
+
+    @mock.patch('nacl.git.git', return_value=None)
+    def test_set_user_name_2(self, mock_git):
+        self.assertEqual(None, set_user_name('John Doe'))
+
+    # set_user_email()
+    @mock.patch('nacl.git.git', return_value=None)
+    def test_set_user_email_1(self, mock_git):
+        self.assertRaises(ValueError, lambda: set_user_email())
+
+    @mock.patch('nacl.git.git', return_value=None)
+    def test_set_user_email_2(self, mock_git):
+        self.assertEqual(None, set_user_email('e@mail.com'))
 
     # git()
 

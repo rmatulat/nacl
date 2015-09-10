@@ -3,6 +3,7 @@
 import unittest
 import mock
 import nacl.helper
+from io import StringIO
 
 
 class TestNaclHelper(unittest.TestCase):
@@ -40,6 +41,49 @@ class TestNaclHelper(unittest.TestCase):
                           lambda: nacl.helper.query_yes_no(
                               'question',
                               default="foo"))
+
+    # input_wrapper()
+
+    def test_input_wrapper_raises(self):
+        self.assertRaises(ValueError, nacl.helper.input_wrapper)
+
+    @mock.patch('__builtin__.raw_input', return_value='answer')
+    def test_input_wrapper_answer_given_1(self, mock_input):
+        self.assertEqual('answer', nacl.helper.input_wrapper('Question'))
+
+    @mock.patch('__builtin__.raw_input', return_value='answer')
+    def test_input_wrapper_answer_given_2(self, mock_input):
+        self.assertEqual('answer',
+                         nacl.helper.input_wrapper('Question', 'default'))
+
+    @mock.patch('__builtin__.raw_input', return_value=u'')
+    def test_input_wrapper_stdout_no_input(self, mock_input):
+        """ No input given but a default is present """
+        self.assertEqual('default', nacl.helper.input_wrapper('Question', 'default'))
+
+    @mock.patch('__builtin__.raw_input', return_value='answer')
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_input_wrapper_stdout_default(self, mock_stdout, mock_input):
+        """ Patch sys.stdout to get the output under test """
+        nacl.helper.input_wrapper('Question', 'Default')
+        output = mock_stdout.getvalue()
+        self.assertEqual(u'Question [\x1b[91mDefault\x1b[0m]:', output)
+
+    @mock.patch('__builtin__.raw_input', return_value='answer')
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_input_wrapper_stdout_default_empty(self, mock_stdout, mock_input):
+        """ Patch sys.stdout to get the output under test """
+        nacl.helper.input_wrapper('Question', u'')
+        output = mock_stdout.getvalue()
+        self.assertEqual(u'Question:', output)
+
+    @mock.patch('__builtin__.raw_input', return_value='answer')
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_input_wrapper_stdout_non_default(self, mock_stdout, mock_input):
+        """ Patch sys.stdout to get the output under test """
+        nacl.helper.input_wrapper('Question')
+        output = mock_stdout.getvalue()
+        self.assertEqual(u'Question:', output)
 
     # merge_two_dicts
 
