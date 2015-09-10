@@ -114,25 +114,6 @@ class GitLapApiCall(Gitlab):
         g_id = self.get_group_id()
         return self.getgroupmembers(g_id)
 
-    def get_my_issues(self):
-        """ List all my open issues """
-
-        """
-        TODO: Clean this up!
-        This is shit as well because simply not needed.
-        We mighty use self.getissues().
-        Even if it is returning an empty list, we can use this instead of
-        explicitly returning false. It acts the same way while using something
-        like
-        if my_list:
-            foo()
-        """
-        issues = self.getissues()
-        if issues:
-            return issues
-        else:
-            return False
-
     def edit_issue(self, issue_id=None, **kwargs):
         """ Close an issue """
 

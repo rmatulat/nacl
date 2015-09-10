@@ -81,30 +81,30 @@ class NaclFlow(object):
 
         As long as 'all' is not set only open issues are shown.
         """
-        issues = self.api.get_my_issues()
+        issues = self.api.getissues()
 
         _ret = []
-        if issues:
-            for issue in issues:
-                if not all and issue['state'] == 'closed':
-                    continue
 
-                project = self.api.getproject(issue['project_id'])
+        for issue in issues:
+            if not all and issue['state'] == 'closed':
+                continue
 
-                _ret.append(('INFO', "TITLE: " + issue['title']))
-                _ret.append(('GREEN', "ID: " + str(issue['iid'])))
-                _ret.append(('GREEN', "URL: " + project['web_url']))
-                _ret.append(('BOLD', "REPO: " + project['description']))
-                _ret.append(('GREEN', "WHAT: " + issue['description']))
-                _ret.append(('GREEN', "STATE: " + issue['state']))
-                _ret.append(('INFO', "AUTHOR: " + issue['author']['name']))
-                if issue['assignee']:
-                    _ret.append((
-                        'GREEN', "ASSIGNEE: " + issue['assignee']['name']))
-                _ret.append(('INFO', '-' * 80))
-            return _ret
-        else:
-            return [('INFO', 'No issues found')]
+            project = self.api.getproject(issue['project_id'])
+
+            _ret.append(('INFO', "TITLE: " + issue['title']))
+            _ret.append(('GREEN', "ID: " + str(issue['iid'])))
+            _ret.append(('GREEN', "URL: " + project['web_url']))
+            _ret.append(('BOLD', "REPO: " + project['description']))
+            _ret.append(('GREEN', "WHAT: " + issue['description']))
+            _ret.append(('GREEN', "STATE: " + issue['state']))
+            _ret.append(('INFO', "AUTHOR: " + issue['author']['name']))
+            if issue['assignee']:
+                _ret.append((
+                    'GREEN', "ASSIGNEE: " + issue['assignee']['name']))
+            _ret.append(('INFO', '-' * 80))
+        if not _ret:
+            return [('INFO', 'No open issues found. Try nacl-flow mi all')]
+        return _ret
 
     @log
     def edit_issue(self, issue_id=None, do=None):

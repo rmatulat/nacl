@@ -182,17 +182,6 @@ class TestNaclGitLapApiCall(unittest.TestCase):
                                 mock_get_gm):
         self.assertEqual(self.git.list_group_members(), {'foo': 'bar'})
 
-    # get_my_issues()
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.getissues",
-                return_value={'foo': 'bar'})
-    def test_get_my_issues(self, mock):
-        self.assertEqual(self.git.get_my_issues(), {'foo': 'bar'})
-
-    @mock.patch("nacl.gitlabapi.GitLapApiCall.getissues",
-                return_value=False)
-    def test_get_my_issues_false(self, mock):
-        self.assertFalse(self.git.get_my_issues())
-
     # edit_issue()
     def test_edit_issue(self):
         self.assertRaises(ValueError, self.git.edit_issue)

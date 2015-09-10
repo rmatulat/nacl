@@ -105,7 +105,7 @@ class TestNaclFlow(unittest.TestCase):
 
     # get_my_issues()
 
-    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_my_issues',
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.getissues',
                 return_value=issues_assignee)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.getproject',
                 return_value=project_a)
@@ -122,12 +122,13 @@ class TestNaclFlow(unittest.TestCase):
                             '--------------------------------------------------------------------------------')],
                           self.flow.get_my_issues._fn(self.flow))
 
-    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_my_issues',
-                return_value=False)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.getissues',
+                return_value=[])
     @mock.patch('nacl.gitlabapi.GitLapApiCall.getproject',
                 return_value=project_a)
     def test_get_my_no_issues(self, mock_gai, mock_gp):
-        self.assertEquals([('INFO', 'No issues found')],
+        self.assertEquals([('INFO',
+                           'No open issues found. Try nacl-flow mi all')],
                           self.flow.get_my_issues._fn(self.flow))
 
     # edit_issue()
