@@ -11,7 +11,7 @@ itself and also the main module for the nacl-git command.
 import os.path
 import os
 from subprocess import Popen, PIPE
-# from pprint import pprint
+from pprint import pprint
 from nacl.helper import color, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.base import get_users_nacl_conf
@@ -134,8 +134,9 @@ def remote_diff():
 
     git(['fetch'])
     output = git(['diff', 'master', 'origin/master'])
+
     if output:
-        _ret.append(('INFO', output))
+        _ret.append(('BOLD', output))
     else:
         _ret.append(('INFO', 'No diffs found'))
 
@@ -305,7 +306,15 @@ def git(args, env={}):
 
     if err and rc != 0:
         raise GitCallError(err)
-    return output
+
+    # We are doing this because there might be umlauts in output that can not
+    # be decoded to unicode (don't know why) and throwing errors like:
+    # UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 5: ordinal not in range(128)
+    # Decoding it like below makes the decorator convert the str successfully
+    # to unicode.
+    # Ugly hack, but I just don't get it right by now.
+    # TODO: Unterstand str and unicode better
+    return output.decode("utf-8")
 
 
 def branch_is_clean():

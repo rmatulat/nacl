@@ -5,7 +5,6 @@
 
 import unittest
 from io import StringIO
-import sys
 import mock
 import pprint
 from nacl.decorator import ListLine, log
@@ -88,6 +87,16 @@ class TestLog(unittest.TestCase):
         def dummy():
             return [('a')]
         self.assertRaises(ValueError, dummy)
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_log_h(self, mock):
+        """ UnicodeError with umlauts """
+        @log
+        def dummy():
+            return [('INFO', 'öf'.decode("windows-1252"))]
+        dummy()
+        output = mock.getvalue()
+        self.assertEqual(u'[ INFO ] \x1b[94m\xc3\xb6f\x1b[0m\n', output)
 
     # Test ListLine decorator
     @mock.patch('sys.stdout', new_callable=StringIO)

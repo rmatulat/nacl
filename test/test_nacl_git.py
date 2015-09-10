@@ -216,7 +216,7 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.branch_is_clean', return_value=True)
     @mock.patch('nacl.git.git', return_value='foo')
     def test_remote_diff_branch_clean(self, mock_branch, mock_git):
-        self.assertEquals([('INFO', 'foo')], remote_diff._fn())
+        self.assertEquals([('BOLD', 'foo')], remote_diff._fn())
 
     # checkout_branch()
     # First Check: branch is not provided
