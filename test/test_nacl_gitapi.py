@@ -81,7 +81,7 @@ class TestNaclGitApi(unittest.TestCase):
     def test_get_remote_url_dict_group(self,
                                        mock_config,
                                        mock_handle):
-        self.assertEqual({'direct_out': {'ssh_url': 'foo'}},
+        self.assertEqual({'payload': {'ssh_url': 'foo'}},
                          get_remote_url_dict._fn())
 
     # test with gitgroup providing groups but the user has

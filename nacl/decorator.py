@@ -40,11 +40,11 @@ def log(func):
         # So if you have a function with the @log decorator,
         # but in some occasions it has to return data, then wrap this data
         # in a dict like so:
-        # return {'direct_out': my_data}
-        # 'direct_out' is the key to return whatever you want.
+        # return {'payload': my_data}
+        # 'payload' is the key to return whatever you want.
 
         try:
-            return msgs['direct_out']
+            return msgs['payload']
         except:
             pass
 

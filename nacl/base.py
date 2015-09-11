@@ -42,10 +42,10 @@ def get_users_nacl_conf(no_logging=False):
     try:
         with open(user_home + '/.nacl') as data_file:
             user_config = json.load(data_file)
-        return {'direct_out': user_config}
+        return {'payload': user_config}
     except:
         if no_logging:
-            return {'direct_out': False}
+            return {'payload': False}
 
         _ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
         return _ret
