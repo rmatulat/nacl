@@ -14,7 +14,12 @@ class TestNaclFlow(unittest.TestCase):
 
     @mock.patch('nacl.gitlabapi.GitLapApiCall.get_project_id',
                 return_value=123)
-    def setUp(self, mock):
+    @mock.patch('nacl.gitlabapi.get_users_nacl_conf',
+                return_value={
+                    'gitapiserver': 'foo',
+                    'gitapitoken': 'bar'
+                })
+    def setUp(self, mock_guc, mock):
         self.flow = NaclFlow()
 
     def raise_TypeError():

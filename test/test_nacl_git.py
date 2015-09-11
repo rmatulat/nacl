@@ -204,7 +204,12 @@ class TestNaclGit(unittest.TestCase):
     # providing an env
     @mock.patch('subprocess.Popen.communicate', return_value=('foo', None))
     @mock.patch('subprocess.Popen.wait', return_value=0)
-    def test_git_providing_env(self, mock_wait, mock_communicate):
+    @mock.patch('nacl.git.get_users_nacl_conf',
+                return_value={
+                    'gitapiserver': 'foo',
+                    'gitapitoken': 'bar'
+                })
+    def test_git_providing_env(self, mock_wait, mock_communicate, mock_guc):
         self.assertEquals('foo', git(['foo'], env={'foo': 'bar'}))
 
     # list_salt_git_repositories (partly)
