@@ -33,7 +33,7 @@ def get_salt_root_dirs():
 
 @log
 def get_users_nacl_conf(no_logging=False):
-    """ returns the users nacl configuration """
+    """ return the users nacl configuration """
 
     user_home = os.path.expanduser("~")
     user_config = {}
