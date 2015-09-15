@@ -4,6 +4,7 @@ import unittest
 import mock
 import pprint
 from io import StringIO
+from io import BytesIO
 from nacl.setup import setup_git
 from nacl.setup import setup_nacl
 from nacl.exceptions import GitCallError
@@ -58,12 +59,51 @@ class TestNaclSetup(unittest.TestCase):
                          mock_wrapper,
                          mock_get_mail,
                          mock_get_name):
-
+        """ test whether exception is catched """
         setup_git()
         output = mock_stdout.getvalue()
         self.assertEqual(u'Something went wrong: Foo', output)
 
     # setup_nacl()
 
-    def test_setup_nacl_1(self):
-        self.assertTrue(setup_nacl())
+    answer_list = [
+        'http://test.example.com',
+        'TestMyToken',
+        'test_saltstack',
+        'http://testproxy.com:8000',
+        'ignore1.git, ignore2.git'
+    ]
+
+    @mock.patch('nacl.base.get_users_nacl_conf', return_value=None)
+    @mock.patch('nacl.base.write_users_nacl_conf', return_value=True)
+    @mock.patch('nacl.helper.input_wrapper', side_effect=answer_list)
+    @mock.patch('nacl.helper.query_yes_no', return_value=True)
+    @mock.patch('sys.stdout', new_callable=BytesIO)
+    @mock.patch('sys.stderr', new_callable=BytesIO)
+    def test_setup_nacl(self,
+                        mock_stderr,
+                        mock_stdout,
+                        mock_yes_no,
+                        mock_input,
+                        mock_wunc,
+                        mock_gunc):
+        setup_nacl()
+        output = mock_stdout.getvalue()
+        self.assertEqual('\n.nacl file written\n', output)
+
+    @mock.patch('nacl.base.get_users_nacl_conf', return_value=None)
+    @mock.patch('nacl.base.write_users_nacl_conf', return_value=False)
+    @mock.patch('nacl.helper.input_wrapper', side_effect=answer_list)
+    @mock.patch('nacl.helper.query_yes_no', return_value=True)
+    @mock.patch('sys.stdout', new_callable=BytesIO)
+    @mock.patch('sys.stderr', new_callable=BytesIO)
+    def test_setup_nacl_no_write(self,
+                                 mock_stderr,
+                                 mock_stdout,
+                                 mock_yes_no,
+                                 mock_input,
+                                 mock_wunc,
+                                 mock_gunc):
+        setup_nacl()
+        output = mock_stderr.getvalue()
+        self.assertEqual('\nSomething went wrong!\n', output)

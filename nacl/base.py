@@ -36,7 +36,7 @@ def get_users_nacl_conf(no_logging=False):
     """ return the users nacl configuration """
 
     user_home = os.path.expanduser("~")
-    user_config = {}
+
     _ret = []
 
     try:
@@ -49,6 +49,21 @@ def get_users_nacl_conf(no_logging=False):
 
         _ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
         return _ret
+
+
+def write_users_nacl_conf(json_data=None):
+    """ Write down the .nacl file """
+
+    if not json_data:
+        raise ValueError('json_data must be provided')
+
+    user_home = os.path.expanduser("~")
+    try:
+        with open(user_home + '/.nacl', 'w') as json_data_file:
+            json.dump(json_data, json_data_file, sort_keys=True, indent=4)
+        return True
+    except:
+        return False
 
 
 def init_nacl():

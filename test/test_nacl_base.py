@@ -4,6 +4,7 @@ import unittest
 import mock
 from nacl.base import get_salt_root_dirs
 from nacl.base import get_users_nacl_conf
+from nacl.base import write_users_nacl_conf
 from nacl.base import init_nacl
 
 
@@ -67,6 +68,25 @@ class TestNaclBase(unittest.TestCase):
     def test_get_users_nacl_conf_raises(self, os_mock, open_mock, json_mock):
         self.assertEqual([('FAIL', ' ~/.nacl not found or invalid JSON', 3)],
                          get_users_nacl_conf._fn())
+
+    # write_users_nacl_conf()
+
+    def test_write_users_nacl_conf(self):
+        """ test when no data is provided 'false' will be returned """
+        self.assertRaises(ValueError, write_users_nacl_conf)
+
+    @mock.patch('os.path.expanduser', return_value="/tmp/")
+    @mock.patch('__builtin__.open')
+    @mock.patch('json.dump', side_effect=TypeError())
+    def test_write_users_nacl_conf_raises(self, os_mock, open_mock, json_mock):
+        """ test if exception is catched """
+        self.assertFalse(write_users_nacl_conf({'foo': 'bar'}))
+
+    @mock.patch('os.path.expanduser', return_value="/tmp/")
+    @mock.patch('__builtin__.open')
+    @mock.patch('json.dump')
+    def test_write_users_nacl_conf_ok(self, os_mock, open_mock, json_mock):
+        self.assertTrue(write_users_nacl_conf({'foo': 'bar'}))
 
     # init_nacl()
     def test_init_nacl(self):
