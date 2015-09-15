@@ -47,30 +47,30 @@ class NaclFlow(object):
         If 'all' is not provided just the open issues are returned.
         """
 
-        _ret = []
+        __ret = []
 
         try:
             issues = self.api.get_all_issues()
         except TypeError as e:
-            _ret.append(('FAIL', 'Project ID not found. Is remote origin a gitlab repo? ({0})'.format(e.message), 1))
-            return _ret
+            __ret.append(('FAIL', 'Project ID not found. Is remote origin a gitlab repo? ({0})'.format(e.message), 1))
+            return __ret
 
         if issues:
             for issue in issues:
                 if not all and issue['state'] == 'closed':
                     continue
-                _ret.append(('INFO', "TITLE: " + issue['title']))
-                _ret.append(('GREEN', "ID: " + str(issue['iid'])))
-                _ret.append(('GREEN', "WHAT: " + issue['description']))
-                _ret.append(('GREEN', "STATE: " + issue['state']))
-                _ret.append(('INFO', "AUTHOR: " + issue['author']['name']))
+                __ret.append(('INFO', "TITLE: " + issue['title']))
+                __ret.append(('GREEN', "ID: " + str(issue['iid'])))
+                __ret.append(('GREEN', "WHAT: " + issue['description']))
+                __ret.append(('GREEN', "STATE: " + issue['state']))
+                __ret.append(('INFO', "AUTHOR: " + issue['author']['name']))
                 if issue['assignee']:
-                    _ret.append((
+                    __ret.append((
                         'INFO', "ASSIGNEE: " + issue['assignee']['name']))
-                _ret.append(('INFO', '-' * 80))
-            if not _ret:
+                __ret.append(('INFO', '-' * 80))
+            if not __ret:
                 return [('INFO', 'No issues found')]
-            return _ret
+            return __ret
         else:
             return [('INFO', 'No issues found')]
 
@@ -83,7 +83,7 @@ class NaclFlow(object):
         """
         issues = self.api.getissues()
 
-        _ret = []
+        __ret = []
 
         for issue in issues:
             if not all and issue['state'] == 'closed':
@@ -91,20 +91,20 @@ class NaclFlow(object):
 
             project = self.api.getproject(issue['project_id'])
 
-            _ret.append(('INFO', "TITLE: " + issue['title']))
-            _ret.append(('GREEN', "ID: " + str(issue['iid'])))
-            _ret.append(('GREEN', "URL: " + project['web_url']))
-            _ret.append(('BOLD', "REPO: " + project['description']))
-            _ret.append(('GREEN', "WHAT: " + issue['description']))
-            _ret.append(('GREEN', "STATE: " + issue['state']))
-            _ret.append(('INFO', "AUTHOR: " + issue['author']['name']))
+            __ret.append(('INFO', "TITLE: " + issue['title']))
+            __ret.append(('GREEN', "ID: " + str(issue['iid'])))
+            __ret.append(('GREEN', "URL: " + project['web_url']))
+            __ret.append(('BOLD', "REPO: " + project['description']))
+            __ret.append(('GREEN', "WHAT: " + issue['description']))
+            __ret.append(('GREEN', "STATE: " + issue['state']))
+            __ret.append(('INFO', "AUTHOR: " + issue['author']['name']))
             if issue['assignee']:
-                _ret.append((
+                __ret.append((
                     'GREEN', "ASSIGNEE: " + issue['assignee']['name']))
-            _ret.append(('INFO', '-' * 80))
-        if not _ret:
+            __ret.append(('INFO', '-' * 80))
+        if not __ret:
             return [('INFO', 'No open issues found. Try nacl-flow mi all')]
-        return _ret
+        return __ret
 
     @log
     def edit_issue(self, issue_id=None, do=None):
@@ -114,18 +114,18 @@ class NaclFlow(object):
         'do' must be either 'close' or 'reopen'
         """
 
-        _ret = []
+        __ret = []
 
         if not check_string_to_int(issue_id):
-            _ret.append(('WARNING', "ID must be an integer", 1))
-            return _ret
+            __ret.append(('WARNING', "ID must be an integer", 1))
+            return __ret
 
         issue_id = int(issue_id)
         issue_uid = self.api.issue_iid_to_uid(issue_id)
         if not issue_uid:
-            _ret.append(('FAIL',
+            __ret.append(('FAIL',
                         "Issue {0} not found".format(issue_id), 1))
-            return _ret
+            return __ret
 
         if do == 'close':
             state_event = 'close'
@@ -137,18 +137,18 @@ class NaclFlow(object):
         try:
             ret_val = self.api.edit_issue(issue_uid, state_event=state_event)
             if ret_val['state'] == 'closed':
-                _ret.append(('GREEN', 'Issue {0} closed'.format(issue_id)))
+                __ret.append(('GREEN', 'Issue {0} closed'.format(issue_id)))
             elif ret_val['state'] == 'reopened':
-                _ret.append(('GREEN', 'Issue {0} reopened'.format(issue_id)))
+                __ret.append(('GREEN', 'Issue {0} reopened'.format(issue_id)))
             else:
-                _ret.append((
+                __ret.append((
                     'FAIL',
                     'Issue {0} has state: {1}'
                     .format(issue_id, ret_val['state'])))
         except:
-            _ret.append(('FAIL', 'Something went wrong'))
+            __ret.append(('FAIL', 'Something went wrong'))
 
-        return _ret
+        return __ret
 
     @log
     def write_patch_for_issue(self, issue_id=None):
@@ -163,24 +163,24 @@ class NaclFlow(object):
         There some consistency checks around starting a new branch.
         """
 
-        _ret = []
+        __ret = []
 
         # first we have to do a few consistency checks
         if not check_string_to_int(issue_id):
-            _ret.append(('WARNING', "ID must be an integer", 1))
-            return _ret
+            __ret.append(('WARNING', "ID must be an integer", 1))
+            return __ret
 
         issue_id = int(issue_id)
 
         if not git.is_git_repo():
-            _ret.append(('WARNING', "Not a git repository", 1))
-            return _ret
+            __ret.append(('WARNING', "Not a git repository", 1))
+            return __ret
 
         if not git.branch_is_clean():
-            _ret.append((
+            __ret.append((
                 'WARNING',
                 "Your branch is not clean. Please commit your changes first."))
-            return _ret
+            return __ret
 
         # Transform iid to id
         try:
@@ -188,24 +188,24 @@ class NaclFlow(object):
 
             issue = self.api.getprojectissue(self.p_id, issue_uid)
             if not issue:
-                _ret.append(('WARNING', "Issue ID not found", 1))
-                return _ret
+                __ret.append(('WARNING', "Issue ID not found", 1))
+                return __ret
 
             if issue['project_id'] != self.p_id:
-                _ret.append((
+                __ret.append((
                     'WARNING',
                     "The issue ID does not correspond to the current " +
                     "git repository/project", 1))
-                return _ret
+                return __ret
         except TypeError as e:
-            _ret.append(('FAIL', 'Something went wrong: {0}'. format(e.message)))
-            return _ret
+            __ret.append(('FAIL', 'Something went wrong: {0}'. format(e.message)))
+            return __ret
 
         # the workflow itself:
         # 1. create a branch
         # 2. switch to that branch.
         git.change_or_create_branch("issue_" + str(issue_id))
-        return _ret
+        return __ret
 
     @log
     def push_patch(self, assignee_id=None, mr_text=None):
@@ -225,21 +225,21 @@ class NaclFlow(object):
         will be created.
         """
 
-        _ret = []
+        __ret = []
 
         if git.get_current_branch() == "master":
-            _ret.append((
+            __ret.append((
                 'WARNING',
                 "You can not open a mergerequest from your "
                 "local master branch.\n"
                 "Please switch to your issue branch!", 1))
-            return _ret
+            return __ret
 
         if not git.branch_is_clean():
             output = git.git(['status', '-s'])
-            _ret.append(('INFO', output))
-            _ret.append(('WARNING', "You have uncommitted changes. Please commit them first!", 1))
-            return _ret
+            __ret.append(('INFO', output))
+            __ret.append(('WARNING', "You have uncommitted changes. Please commit them first!", 1))
+            return __ret
 
         # We have to do some validating:
         # 1. Check whether the current commit is already in
@@ -265,11 +265,11 @@ class NaclFlow(object):
         sha_is_on_remote = git.is_commit_on_remote(last_local_sha)
 
         if sha_is_on_remote:
-            _ret.append((
+            __ret.append((
                 'WARNING',
                 "Your local commit is already in the remote master "
                 "branch.\nAborting!", 1))
-            return _ret
+            return __ret
 
         # Step 2: Check whether we have to push our local changes to the remote
 
@@ -277,7 +277,7 @@ class NaclFlow(object):
 
         sourcebranch = git.get_current_branch()
 
-        _ret.append(('GREEN', 'Branch: {0}'.format(sourcebranch)))
+        __ret.append(('GREEN', 'Branch: {0}'.format(sourcebranch)))
 
         # First check whether the MR branch exists on the remote
         sourcebranch_on_remote = self.api.remote_branch_exists(sourcebranch)
@@ -287,7 +287,7 @@ class NaclFlow(object):
             # We need to merge the origin/master into our issue branch because
             # of avoiding conflicts in the merge workflow on the origin side.
             try:
-                _ret.append((
+                __ret.append((
                     'INFO',
                     'Try to rebase origin master into {0}'
                     .format(sourcebranch)))
@@ -295,41 +295,41 @@ class NaclFlow(object):
                 git.git(['fetch'])
                 git.git(['rebase', 'origin/master'])
             except ValueError as e:
-                _ret.append((
+                __ret.append((
                     'FAIL',
                     "Merge into {0} failed: {1}".
                     format(sourcebranch, e.message)))
 
                 git.git(['rebase', '--abort'])
-                _ret.append(('INFO', 'Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.'))
-                _ret.append(('INFO', 'Then run\n\ngit add <FILE>\n git rebase --continue'))
-                _ret.append(('INFO', 'At least run\n\nnacl-flow cp again', 1))
-                return _ret
+                __ret.append(('INFO', 'Please run \n\ngit pull --rebase\n\nand manually resolve your CONFLICTs.'))
+                __ret.append(('INFO', 'Then run\n\ngit add <FILE>\n git rebase --continue'))
+                __ret.append(('INFO', 'At least run\n\nnacl-flow cp again', 1))
+                return __ret
 
         else:
             # Second check whether we have un-pushed local commits.
             # We check the local source branch compared to the remote
             # source branch.
             unpushed_commits = git.need_pull_push(
-                return_returncode=True,
+                return__returncode=True,
                 local_branch=sourcebranch,
                 remote_branch=sourcebranch)
             if unpushed_commits == 2:
                 need_push = True
 
         if need_push:
-            _ret.append(('INFO', "Pushing to origin " + sourcebranch))
+            __ret.append(('INFO', "Pushing to origin " + sourcebranch))
             git.git(['push', 'origin', sourcebranch])
         else:
-            _ret.append(('INFO', "Local and remote are up-to-date."))
+            __ret.append(('INFO', "Local and remote are up-to-date."))
 
         # We are done with pushing commits.
         # Step 3. Creating a MR
         if assignee_id:
 
             if not check_string_to_int(assignee_id):
-                _ret.append(('WARNING', "ID must be an integer", 1))
-                return _ret
+                __ret.append(('WARNING', "ID must be an integer", 1))
+                return __ret
 
             assignee_id = int(assignee_id)
 
@@ -342,7 +342,7 @@ class NaclFlow(object):
             sourcebranch, targetbranch)
 
         if is_new_mergerequest:
-            _ret.append(('GREEN', "Create a new mergerequest"))
+            __ret.append(('GREEN', "Create a new mergerequest"))
             self.api.createmergerequest(
                 self.p_id,
                 sourcebranch,
@@ -350,31 +350,31 @@ class NaclFlow(object):
                 title,
                 assignee_id=assignee_id)
         else:
-            _ret.append(('INFO', "Mergerequests exists. Skipping"))
+            __ret.append(('INFO', "Mergerequests exists. Skipping"))
 
-        return _ret
+        return __ret
 
     @log
     def list_project_members(self):
         """ Display a list of all projectmembers """
 
-        _ret = []
+        __ret = []
 
         members = self.api.list_group_members()
         if members:
             for member in members:
-                _ret.append(('INFO', "Name: " + member['name']))
-                _ret.append(('GREEN', "ID: " + str(member['id'])))
+                __ret.append(('INFO', "Name: " + member['name']))
+                __ret.append(('GREEN', "ID: " + str(member['id'])))
         else:
-            _ret.append(('INFO', 'No project members found'))
+            __ret.append(('INFO', 'No project members found'))
 
-        return _ret
+        return __ret
 
     @log
     def list_all_mergerequests(self, all=False):
         """ Display all open mergerequests of a project """
 
-        _ret = []
+        __ret = []
 
         mergerequests = self.api.getmergerequests(self.p_id)
         for mergerequest in mergerequests:
@@ -382,46 +382,46 @@ class NaclFlow(object):
                or not all and mergerequest['state'] == 'merged':
                 continue
 
-            _ret.append(('INFO', "TITLE: " + mergerequest['title']))
-            _ret.append(('GREEN', "BRANCH: " + mergerequest['source_branch']))
-            _ret.append(('GREEN', "STATE: " + mergerequest['state']))
+            __ret.append(('INFO', "TITLE: " + mergerequest['title']))
+            __ret.append(('GREEN', "BRANCH: " + mergerequest['source_branch']))
+            __ret.append(('GREEN', "STATE: " + mergerequest['state']))
 
             if mergerequest['assignee']:
-                _ret.append((
+                __ret.append((
                     'GREEN',
                     "ASSIGNEE: " + mergerequest['assignee']['name']))
-            _ret.append(('GREEN', "ID: " + str(mergerequest['id'])))
-            _ret.append(('GREEN', "DATE: " + str(mergerequest['created_at'])))
-            _ret.append(('INFO', '-' * 80))
-            return _ret
-        return _ret
+            __ret.append(('GREEN', "ID: " + str(mergerequest['id'])))
+            __ret.append(('GREEN', "DATE: " + str(mergerequest['created_at'])))
+            __ret.append(('INFO', '-' * 80))
+            return __ret
+        return __ret
 
     @log
     def get_mergerequest_details(self, mergerequest_id=None):
         """ Display the details of a mergerequest """
-        _ret = []
+        __ret = []
         values = self.api.get_mergerequest_details(mergerequest_id)
         change = values['changes']
         comments = values['comments']
 
         if not change:
-            _ret.append(('FAIL', "Mergerequest not found", 1))
-            return _ret
+            __ret.append(('FAIL', "Mergerequest not found", 1))
+            return __ret
 
-        _ret.append(('INFO', "TITLE: " + change['title']))
-        _ret.append(('GREEN', "AUTHOR: " + change['author']['name']))
-        _ret.append(('BOLD', "STATE: " + change['state']))
-        _ret.append(('GREEN', "DATE: " + change['created_at']))
-        _ret.append(('DARKCYAN', "DIFF:\n"))
+        __ret.append(('INFO', "TITLE: " + change['title']))
+        __ret.append(('GREEN', "AUTHOR: " + change['author']['name']))
+        __ret.append(('BOLD', "STATE: " + change['state']))
+        __ret.append(('GREEN', "DATE: " + change['created_at']))
+        __ret.append(('DARKCYAN', "DIFF:\n"))
         for chg in change['changes']:
-            _ret.append(('DARKCYAN', "\n" + chg['diff']))
+            __ret.append(('DARKCYAN', "\n" + chg['diff']))
 
-        _ret.append(('INFO', "COMMENTS:"))
+        __ret.append(('INFO', "COMMENTS:"))
         for comment in comments:
-            _ret.append(('GREEN', comment['author']['name'] + ":"))
-            _ret.append(('GREEN', comment['note'] + "\n" + "-" * 40))
+            __ret.append(('GREEN', comment['author']['name'] + ":"))
+            __ret.append(('GREEN', comment['note'] + "\n" + "-" * 40))
 
-        return _ret
+        return __ret
 
     @log
     def accept_mergerequest(self, mergerequest_id=None):
@@ -435,77 +435,77 @@ class NaclFlow(object):
         who accepts the MR.
         """
 
-        _ret = []
+        __ret = []
 
         do_merge = query_yes_no("Should mergerequest {0} be merged?"
                                 .format(mergerequest_id),
                                 "no")
 
         if not self.api.is_mergerequest_open(mergerequest_id):
-            _ret.append((
+            __ret.append((
                 'FAIL',
                 "Mergerequest '{0}' already closed? "
                 "Is there a mergerequest with this ID?"
                 .format(mergerequest_id), 1))
 
-            return _ret
+            return __ret
 
         if do_merge:
-            _ret.append(('GREEN', "Start merge"))
+            __ret.append(('GREEN', "Start merge"))
 
             if self.api.mr_is_mergeable(mergerequest_id):
                 return_values = self.api.accept_mergerequest(mergerequest_id)
             else:
-                _ret.append((
+                __ret.append((
                     'FAIL',
                     "Mergerequest would not merge into origin/master", 1))
 
                 self.api.addcommenttomergerequest(
                     self.p_id, mergerequest_id,
                     'Could not be merged due to CONFLICTs')
-                return _ret
+                return __ret
 
             if return_values and return_values['state'] == 'merged':
-                _ret.append((
+                __ret.append((
                     'GREEN',
                     "Merge complete. Remove " +
                     return_values['source_branch']))
                 git.git(['push', 'origin', '--delete', return_values['source_branch']])
             else:
-                _ret.append((
+                __ret.append((
                     'FAIL',
                     "Mergerequest already closed? Is there a mergerequest " +
                     "with this ID? State: {0}".format(return_values['state'])))
         else:
-            _ret.append(('INFO', "Merge aborted!"))
+            __ret.append(('INFO', "Merge aborted!"))
 
-        return _ret
+        return __ret
 
     @log
     def get_commit(self, commit=None):
         """ Display a commit """
 
-        _ret = []
+        __ret = []
 
         if not commit:
-            _ret.append(('FAIL', "Commit SHA must be provided"))
-            return _ret
+            __ret.append(('FAIL', "Commit SHA must be provided"))
+            return __ret
 
         details = self.api.getrepositorycommit(self.p_id, commit)
         diffs = self.api.getrepositorycommitdiff(self.p_id, commit)
 
         if details:
-            _ret.append(('BOLD', "COMMIT: {0}".format(commit)))
-            _ret.append(('GREEN', "AUTHOR: {0}".format(details['author_name'])))
-            _ret.append(('GREEN', "MESSAGE:\n{0}".format(details['message'].encode('utf-8'))))
-            _ret.append(('GREEN', "DATE: {0}".format(details['created_at'])))
+            __ret.append(('BOLD', "COMMIT: {0}".format(commit)))
+            __ret.append(('GREEN', "AUTHOR: {0}".format(details['author_name'])))
+            __ret.append(('GREEN', "MESSAGE:\n{0}".format(details['message'].encode('utf-8'))))
+            __ret.append(('GREEN', "DATE: {0}".format(details['created_at'])))
         else:
-            _ret.append(('FAIL', "Commit not found: {0}".format(commit), 1))
-            return _ret
+            __ret.append(('FAIL', "Commit not found: {0}".format(commit), 1))
+            return __ret
 
         if diffs:
-            _ret.append(('GREEN', "DIFF:\n"))
+            __ret.append(('GREEN', "DIFF:\n"))
             for diff in diffs:
-                _ret.append(('BOLD', "\n{0}".format(diff['diff'])))
+                __ret.append(('BOLD', "\n{0}".format(diff['diff'])))
 
-        return _ret
+        return __ret

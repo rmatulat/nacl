@@ -74,7 +74,7 @@ def merge_git_repo(git_repo_name=None):
     after the merge is done.
     """
 
-    _ret = []
+    __ret = []
 
     if git_repo_name:
         os.chdir(git_repo_name[:-4])
@@ -82,65 +82,65 @@ def merge_git_repo(git_repo_name=None):
     branch = get_current_branch()
     dir_name = os.getcwd()
 
-    _ret.append(("INFO", "Checking: {0}".format(dir_name)))
+    __ret.append(("INFO", "Checking: {0}".format(dir_name)))
 
     # First check if there are any uncommitted changes.
     # In this case skip merging!
     if not branch_is_clean():
-        _ret.append(('INFO', 'Uncommitted changes, skipping...'))
-        return _ret
+        __ret.append(('INFO', 'Uncommitted changes, skipping...'))
+        return __ret
     else:
         pass
 
     # We only merge into the local master branch
     if branch != 'master':
-        _ret.append(('INFO', 'Checkout master'))
+        __ret.append(('INFO', 'Checkout master'))
         checkout_branch('master')
 
-    if need_pull_push(return_returncode=True) == 1:
-        _ret.append(("INFO", "Need merge! "))
-        _ret.append(("INFO", "Try to merge Branch: master in {0}".format(dir_name)))
+    if need_pull_push(return__returncode=True) == 1:
+        __ret.append(("INFO", "Need merge! "))
+        __ret.append(("INFO", "Try to merge Branch: master in {0}".format(dir_name)))
     else:
         # Switch back to previous branch
         if branch != 'master':
-            _ret.append(('INFO', 'Nothing to do in master... Switch back'))
+            __ret.append(('INFO', 'Nothing to do in master... Switch back'))
             checkout_branch(branch)
-        return _ret
+        return __ret
 
     try:
         git(['fetch'])
-        _ret.append(("INFO", "Start merge..."))
+        __ret.append(("INFO", "Start merge..."))
         git(['merge', '--ff-only', 'origin/master'])
-        _ret.append(('INFO', 'Merge complete!'))
+        __ret.append(('INFO', 'Merge complete!'))
     except GitCallError as e:
-        _ret.append(('INFO', 'Merge failed: {0}'.format(e.message)))
+        __ret.append(('INFO', 'Merge failed: {0}'.format(e.message)))
 
     # Switch back to prvevious branch
     if branch != 'master':
-        _ret.append(('INFO', 'Switch back'))
+        __ret.append(('INFO', 'Switch back'))
         checkout_branch(branch)
 
-    return _ret
+    return __ret
 
 
 @log
 def remote_diff():
     """ Shows the diffs between the local and the origin/master"""
 
-    _ret = []
+    __ret = []
 
     if not branch_is_clean():
-        _ret.append(('INFO', 'Uncommitted changes.'))
+        __ret.append(('INFO', 'Uncommitted changes.'))
 
     git(['fetch'])
     output = git(['diff', 'master', 'origin/master'])
 
     if output:
-        _ret.append(('BOLD', output))
+        __ret.append(('BOLD', output))
     else:
-        _ret.append(('INFO', 'No diffs found'))
+        __ret.append(('INFO', 'No diffs found'))
 
-    return _ret
+    return __ret
 
 
 @log
@@ -149,21 +149,21 @@ def checkout_branch(branch=None):
 
     print_is_git_repo()
 
-    _ret = []
+    __ret = []
 
     if branch is None:
         git(['checkout', 'master'])
-        _ret.append(('INFO', 'Branch: {0}'.format(get_current_branch())))
+        __ret.append(('INFO', 'Branch: {0}'.format(get_current_branch())))
     elif branch == get_current_branch():
-        _ret.append(('INFO', 'Already in {0}'.format(get_current_branch())))
+        __ret.append(('INFO', 'Already in {0}'.format(get_current_branch())))
     else:
         try:
             git(['checkout', branch])
-            _ret.append(('INFO', 'Switch to branch: {0}'.format(get_current_branch())))
+            __ret.append(('INFO', 'Switch to branch: {0}'.format(get_current_branch())))
         except GitCallError as exc:
-            _ret.append(('FAIL', 'Unable to checkout {0} : {1}'.format(branch, exc)))
+            __ret.append(('FAIL', 'Unable to checkout {0} : {1}'.format(branch, exc)))
 
-    return _ret
+    return __ret
 
 
 def is_git_repo(dir_name=None):
@@ -205,22 +205,22 @@ def branch_exist(branch=None):
 def change_or_create_branch(branch=None):
     """ Either creates (and switches into) a branch or just list branches """
 
-    _ret = []
+    __ret = []
 
     print_is_git_repo()
 
     if branch is None:
-        _ret.append(('INFO', git(['branch']).rstrip()))
+        __ret.append(('INFO', git(['branch']).rstrip()))
     elif branch is not None and branch_exist(branch) is False:
-        _ret.append(('INFO', 'Creating branch: {0}'.format(branch)))
+        __ret.append(('INFO', 'Creating branch: {0}'.format(branch)))
         git(['branch', '--track', branch, 'origin/master'])
         git(['checkout', branch])
-        _ret.append(('INFO', 'Switch into: {0}'.format(get_current_branch())))
+        __ret.append(('INFO', 'Switch into: {0}'.format(get_current_branch())))
     else:
-        _ret.append(('INFO', "Branch exists. Change into {0}".format(branch)))
+        __ret.append(('INFO', "Branch exists. Change into {0}".format(branch)))
         git(['checkout', branch])
 
-    return _ret
+    return __ret
 
 
 @log
@@ -231,19 +231,19 @@ def remote_prune():
     Removes staled remote refs (like old feature branches at the
     remote, that have been merged and deleted)
     """
-    _ret = []
+    __ret = []
     try:
         output = git(['remote', 'prune', 'origin'])
 
     except GitCallError as e:
-        _ret.append(('FAIL', 'Prune failed: {0}'.format(e)))
-        return _ret
+        __ret.append(('FAIL', 'Prune failed: {0}'.format(e)))
+        return __ret
 
     if not output:
         output = 'Nothing to prune'
-    _ret.append(('INFO', output))
+    __ret.append(('INFO', output))
 
-    return _ret
+    return __ret
 
 
 def get_local_url_list():
@@ -377,7 +377,7 @@ def is_commit_on_remote(sha=None, branch='master'):
         raise ValueError("sha must be provided")
 
 
-def need_pull_push(return_returncode=False,
+def need_pull_push(return__returncode=False,
                    local_branch='master',
                    remote_branch='master'):
     """ Check whether we need to push or pull """
@@ -401,7 +401,7 @@ def need_pull_push(return_returncode=False,
         answer = "Diverged"
         code = 3
 
-    if return_returncode is True:
+    if return__returncode is True:
         return code
 
     return answer
@@ -435,21 +435,21 @@ def print_merge_status(branch):
 @ListLine
 def pretty_status():
     """ Prints out some information about a repository """
-    _ret = {}
-    _ret['branch'] = get_current_branch()
-    _ret['status'] = git(['status', '-s']).rstrip()
-    _ret['pull_push'] = need_pull_push()
-    _ret['merge_status'] = ''
-    _ret['all_branches'] = ', '.join(get_all_branches())
+    __ret = {}
+    __ret['branch'] = get_current_branch()
+    __ret['status'] = git(['status', '-s']).rstrip()
+    __ret['pull_push'] = need_pull_push()
+    __ret['merge_status'] = ''
+    __ret['all_branches'] = ', '.join(get_all_branches())
 
     if branch_is_clean():
-        _ret['status'] = 'Clean'
+        __ret['status'] = 'Clean'
     else:
-        _ret['status'] = _ret['status'][0:10]
+        __ret['status'] = __ret['status'][0:10]
 
-    if _ret['branch'] != 'master':
-        _ret['merge_status'] = print_merge_status(_ret['branch'])
+    if __ret['branch'] != 'master':
+        __ret['merge_status'] = print_merge_status(__ret['branch'])
 
-    _ret['dir_name'] = os.getcwd()
+    __ret['dir_name'] = os.getcwd()
 
-    return _ret
+    return __ret

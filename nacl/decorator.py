@@ -99,35 +99,35 @@ class ListLine(object):
         self.t = Terminal()
 
     def __call__(self, *args, **kwargs):
-        _ret = self._fn(*args, **kwargs)
+        __ret = self._fn(*args, **kwargs)
 
-        if not _ret:
+        if not __ret:
             return
 
-        if _ret['status'] == 'Clean':
+        if __ret['status'] == 'Clean':
             st_level = 'UNDERLINE'
         else:
             st_level = 'GREEN'
 
         # colorize merge_status
-        if _ret['merge_status'] == '(merged)':
+        if __ret['merge_status'] == '(merged)':
             m_s_level = 'INFO'
         else:
             m_s_level = 'FAIL'
 
         # colorize pull_push
-        if _ret['pull_push'] == "Up-to-date":
+        if __ret['pull_push'] == "Up-to-date":
             p_p_level = 'GREEN'
         else:
             p_p_level = 'FAIL'
 
         # sys.stdout.write(
         s = u'{0}{1}{2}{3}{4}{5}\n'.format(
-            self.t.move_x(0) + color('WARNING', _ret['dir_name']),
-            self.t.move_x(51) + color('GREEN', _ret['branch']),
-            self.t.move_x(57) + color(m_s_level, _ret['merge_status']),
-            self.t.move_x(67) + color(st_level, _ret['status']),
-            self.t.move_x(83) + color(p_p_level, _ret['pull_push']),
-            self.t.move_x(99) + color('DARKCYAN', _ret['all_branches'])).encode()
+            self.t.move_x(0) + color('WARNING', __ret['dir_name']),
+            self.t.move_x(51) + color('GREEN', __ret['branch']),
+            self.t.move_x(57) + color(m_s_level, __ret['merge_status']),
+            self.t.move_x(67) + color(st_level, __ret['status']),
+            self.t.move_x(83) + color(p_p_level, __ret['pull_push']),
+            self.t.move_x(99) + color('DARKCYAN', __ret['all_branches'])).encode()
 
         sys.stdout.write(s.decode('utf-8'))

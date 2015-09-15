@@ -37,7 +37,7 @@ def get_users_nacl_conf(no_logging=False):
 
     user_home = os.path.expanduser("~")
 
-    _ret = []
+    __ret = []
 
     try:
         with open(user_home + '/.nacl') as data_file:
@@ -47,8 +47,8 @@ def get_users_nacl_conf(no_logging=False):
         if no_logging:
             return {'payload': False}
 
-        _ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
-        return _ret
+        __ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
+        return __ret
 
 
 def write_users_nacl_conf(json_data=None):

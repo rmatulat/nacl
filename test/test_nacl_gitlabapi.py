@@ -168,7 +168,7 @@ class TestNaclGitLapApiCall(unittest.TestCase):
 
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getprojectissues",
                 return_value={'foo': 'bar'})
-    def test_get_all_issues_returns_something(self,
+    def test_get_all_issues__returns_something(self,
                                               mock_get_p_issues):
         self.assertEqual(self.git.get_all_issues(), {'foo': 'bar'})
 
@@ -188,7 +188,7 @@ class TestNaclGitLapApiCall(unittest.TestCase):
 
     @mock.patch("nacl.gitlabapi.GitLapApiCall.editissue",
                 return_value={'foo': 'bar'})
-    def test_edit_issue_returns_something(self, mock_ei):
+    def test_edit_issue__returns_something(self, mock_ei):
         self.assertEqual(self.git.edit_issue(11), {'foo': 'bar'})
 
     # issue_iid_to_uid()
@@ -202,7 +202,7 @@ class TestNaclGitLapApiCall(unittest.TestCase):
 
     @mock.patch("nacl.gitlabapi.GitLapApiCall.get_all_issues",
                 return_value=all_project_issues)
-    def test_issue_iid_to_uid_id_returned(self, mock):
+    def test_issue_iid_to_uid_id__returned(self, mock):
         self.assertEqual(self.git.issue_iid_to_uid(11), 1)
 
     @mock.patch("nacl.gitlabapi.GitLapApiCall.get_all_issues",

@@ -32,7 +32,7 @@ def get_remote_url_dict():
     starting point to look at.
     """
 
-    _ret = []
+    __ret = []
 
     config = get_users_nacl_conf()
 
@@ -52,8 +52,8 @@ def get_remote_url_dict():
     except:
         # Fix this: be more precise about what
         # fails.
-        _ret.append(('FAIL', 'API call failed! Credentials?', 1))
-        return _ret
+        __ret.append(('FAIL', 'API call failed! Credentials?', 1))
+        return __ret
 
     if group_id:
         ssh_url_dict = {}
@@ -64,7 +64,7 @@ def get_remote_url_dict():
 
         return {'payload': clean_up_dict(ssh_url_dict, ignore_repositories)}
     else:
-        _ret.append(('FAIL',
+        __ret.append(('FAIL',
                      "Git group not found: %s" % config['gitgroup'],
                      1))
-        return _ret
+        return __ret

@@ -670,12 +670,12 @@ class TestNaclFlow(unittest.TestCase):
     def test_accept_mergerequest_aborted(self, mock_yn, mock_imro):
         self.assertEquals([('INFO', 'Merge aborted!')], self.flow.accept_mergerequest._fn(self.flow))
 
-    sample_ret_value = {
+    sample__ret_value = {
         'state': 'merged',
         'source_branch': 'foo'
     }
 
-    sample_ret_value_not_merged = {
+    sample__ret_value_not_merged = {
         'state': '_not_merged',
         'source_branch': 'foo'
     }
@@ -687,7 +687,7 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.gitlabapi.GitLapApiCall.mr_is_mergeable',
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.accept_mergerequest',
-                return_value=sample_ret_value)
+                return_value=sample__ret_value)
     @mock.patch('nacl.git.git', return_value=None)
     def test_accept_mergerequest_workflow(self,
                                           mock_yn,
@@ -706,7 +706,7 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.gitlabapi.GitLapApiCall.mr_is_mergeable',
                 return_value=False)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.accept_mergerequest',
-                return_value=sample_ret_value)
+                return_value=sample__ret_value)
     @mock.patch('nacl.git.git', return_value=None)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.addcommenttomergerequest',
                 return_value=None)
@@ -728,7 +728,7 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.gitlabapi.GitLapApiCall.mr_is_mergeable',
                 return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.accept_mergerequest',
-                return_value=sample_ret_value_not_merged)
+                return_value=sample__ret_value_not_merged)
     @mock.patch('nacl.git.git', return_value=None)
     def test_accept_mergerequest_not_merged(self,
                                             mock_yn,
