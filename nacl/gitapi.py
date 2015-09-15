@@ -62,7 +62,7 @@ def get_remote_url_dict():
         for project in group['projects']:
             ssh_url_dict[project['ssh_url_to_repo']] = project['description']
 
-        return {'direct_out': clean_up_dict(ssh_url_dict, ignore_repositories)}
+        return {'payload': clean_up_dict(ssh_url_dict, ignore_repositories)}
     else:
         _ret.append(('FAIL',
                      "Git group not found: %s" % config['gitgroup'],

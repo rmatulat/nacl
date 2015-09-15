@@ -32,20 +32,38 @@ def get_salt_root_dirs():
 
 
 @log
-def get_users_nacl_conf():
-    """ returns the users nacl configuration """
+def get_users_nacl_conf(no_logging=False):
+    """ return the users nacl configuration """
 
     user_home = os.path.expanduser("~")
-    user_config = {}
+
     _ret = []
 
     try:
         with open(user_home + '/.nacl') as data_file:
             user_config = json.load(data_file)
-        return {'direct_out': user_config}
+        return {'payload': user_config}
     except:
+        if no_logging:
+            return {'payload': False}
+
         _ret.append(("FAIL", " ~/.nacl not found or invalid JSON", 3))
         return _ret
+
+
+def write_users_nacl_conf(json_data=None):
+    """ Write down the .nacl file """
+
+    if not json_data:
+        raise ValueError('json_data must be provided')
+
+    user_home = os.path.expanduser("~")
+    try:
+        with open(user_home + '/.nacl', 'w') as json_data_file:
+            json.dump(json_data, json_data_file, sort_keys=True, indent=4)
+        return True
+    except:
+        return False
 
 
 def init_nacl():
@@ -57,4 +75,4 @@ def init_nacl():
         * ...
     TODO.
     """
-    pass
+    return True

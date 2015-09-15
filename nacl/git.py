@@ -277,6 +277,40 @@ def compare_remote():
                 print("%-59s\n" % (desc))
 
 
+def get_user_name():
+    """
+    Return the name of the git user
+
+    This reads out the git config and returns the user.name parameter.
+    """
+    return git(['config', '--get', 'user.name']).rstrip()
+
+
+def get_user_email():
+    """
+    Return the email adress of the git user
+
+    This reads out the git config and returns the user.email parameter.
+    """
+    return git(['config', '--get', 'user.email']).rstrip()
+
+
+def set_user_name(user_name=None):
+    """ Set a git user.name """
+    if not user_name:
+        raise ValueError('user_name must be set!')
+
+    git(['config', '--global', 'user.name', user_name])
+
+
+def set_user_email(user_email=None):
+    """ Set a git user.email """
+    if not user_email:
+        raise ValueError('user_email must be set!')
+
+    git(['config', '--global', 'user.email', user_email])
+
+
 def git(args, env={}):
     """
     The main git command wrapper

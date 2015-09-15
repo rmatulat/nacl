@@ -64,6 +64,26 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 
+def input_wrapper(question=None, default=None):
+    """ Wrapping around raw_input() """
+    if not question:
+        raise ValueError('Question must be set!')
+
+    while True:
+        if default:
+            sys.stdout.write(u'{0} [{1}]:'.format(question,
+                                                  color('FAIL', default)))
+        else:
+            sys.stdout.write(u'{0}:'.format(question))
+        user_input = raw_input()
+        if user_input:
+            return user_input
+        elif not user_input and default:
+            return default
+        else:
+            pass
+
+
 def merge_two_dicts(x, y):
     """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()

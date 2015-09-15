@@ -17,10 +17,7 @@ import os
 def binary_exists(binary_name):
     """ checks whether a binary exists. """
     binary_path = spawn.find_executable(binary_name)
-    if binary_path:
-        return True
-    else:
-        return False
+    return(bool(binary_path))
 
 
 def get_dir_list_from_filesystem(filter='*.git'):
