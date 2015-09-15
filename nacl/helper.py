@@ -85,10 +85,9 @@ def input_wrapper(question=None, default=None):
 
 
 def merge_two_dicts(x, y):
-    """Given two dicts, merge them into a new dict as a shallow copy."""
-    z = x.copy()
-    z.update(y)
-    return z
+    """ merge two dicts """
+    x.update(y)
+    return x
 
 
 def clean_up_dict(clean_dict, ignore_list):
@@ -110,6 +109,7 @@ def check_string_to_int(int_string):
     try:
         if int_string[0] in ('-', '+'):
             return int_string[1:].isdigit()
+
     except TypeError:
         return int(int_string)
 
