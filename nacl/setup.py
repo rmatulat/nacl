@@ -136,8 +136,7 @@ def setup_nacl():
         )
         # handling whitespaces
         ignore_repositories = user_config['ignore_repositories'].split(',')
-        ignore_repositories = [x.strip() for x in ignore_repositories]
-        user_config['ignore_repositories'] = ignore_repositories
+        user_config['ignore_repositories'] = [x.strip() for x in ignore_repositories]
 
     if nacl.base.write_users_nacl_conf(user_config):
         sys.stdout.write('\n.nacl file written\n')
