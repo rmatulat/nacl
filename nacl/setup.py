@@ -58,19 +58,28 @@ def setup_nacl():
 
     user_config = nacl.base.get_users_nacl_conf(no_logging=True)
 
+    user_config_template = {
+        'gitapiserver': 'https://gitlab.example.com',
+        'gitapitoken': '<MyAweSomeToken>',
+        'gitgroup': 'saltstack',
+        'proxy': '',
+        'ignore_repositories': [
+            'git@gitlab.example.com:saltstack/example.git']
+    }
+
     # If there is no .nacl present (or the JSON data is broken) than
     # provide some defaults.
+    # If there is a user_config, merge it with the template in case
+    # that some keys are missing.
     # This is the most easy way I came up with, handling defaults of several
     # questions. More elegant suggestions are welcome!
     if not user_config:
-        user_config = {
-            'gitapiserver': 'https://gitlab.example.com',
-            'gitapitoken': '<MyAweSomeToken>',
-            'gitgroup': 'saltstack',
-            'proxy': '',
-            'ignore_repositories': [
-                'git@gitlab.example.com:saltstack/example.git']
-        }
+        user_config = user_config_template
+    else:
+        user_config = nacl.helper.merge_two_dicts(
+            user_config_template,
+            user_config
+        )
 
     # We have to handle each question for a value a little differently because
     # there are changing needs in asking questions and/or parse the answer.
