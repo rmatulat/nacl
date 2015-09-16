@@ -107,3 +107,33 @@ class TestNaclSetup(unittest.TestCase):
         setup_nacl()
         output = mock_stderr.getvalue()
         self.assertEqual('\nSomething went wrong!\n', output)
+
+    # when a .nacl file is provided, but some values in it are missing,
+    # then stop throwing KeyError.
+    # In this case 'proxy' is missing.
+
+    emulate_incomplete_nacl_file = {
+        'gitapiserver': 'https://gitlab.example.com',
+        'gitapitoken': '<MyAweSomeToken>',
+        'gitgroup': 'saltstack',
+        'ignore_repositories': [
+            'git@gitlab.example.com:saltstack/example.git']
+    }
+
+    @mock.patch('nacl.base.get_users_nacl_conf',
+                return_value=emulate_incomplete_nacl_file)
+    @mock.patch('nacl.base.write_users_nacl_conf', return_value=True)
+    @mock.patch('nacl.helper.input_wrapper', side_effect=answer_list)
+    @mock.patch('nacl.helper.query_yes_no', return_value=True)
+    @mock.patch('sys.stdout', new_callable=BytesIO)
+    @mock.patch('sys.stderr', new_callable=BytesIO)
+    def test_setup_nacl_no_keyerror(self,
+                                    mock_stderr,
+                                    mock_stdout,
+                                    mock_yes_no,
+                                    mock_input,
+                                    mock_wunc,
+                                    mock_gunc):
+        setup_nacl()
+        output = mock_stdout.getvalue()
+        self.assertEqual('\n.nacl file written\n', output)
