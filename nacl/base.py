@@ -35,7 +35,7 @@ def get_salt_root_dirs():
 def get_users_nacl_conf(no_logging=False):
     """ return the users nacl configuration """
 
-    user_home = os.path.expanduser("~")
+    user_home = os.path.expanduser("~" + os.environ.get('SUDO_USER', ''))
 
     __ret = []
 
