@@ -35,7 +35,12 @@ def get_salt_root_dirs():
 def get_users_nacl_conf(no_logging=False):
     """ return the users nacl configuration """
 
+    # First try to get a .nacl File from an sudo'd user
     user_home = os.path.expanduser("~" + os.environ.get('SUDO_USER', ''))
+
+    # If this fails, look, if root has a .nacl file
+    if not os.path.isfile(user_home + '/.nacl'):
+        user_home = os.path.expanduser("~")
 
     __ret = []
 
