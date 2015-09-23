@@ -15,6 +15,7 @@ from pprint import pprint
 from nacl.helper import color, merge_two_dicts
 from nacl.fileutils import get_dir_list_from_filesystem
 from nacl.base import get_users_nacl_conf
+from nacl.base import get_salt_root_dirs
 import nacl.gitapi
 from nacl.decorator import log, ListLine
 from nacl.exceptions import GitCallError
@@ -29,7 +30,7 @@ def list_salt_git_repositories():
     they have uncommitted changes or not and list them in a pretty way.
     """
 
-    git_repo_list = get_dir_list_from_filesystem()
+    git_repo_list = get_salt_root_dirs()
 
     # Some Header
     # Fix this: Use a decorator for printing out stuff instead
@@ -40,7 +41,7 @@ def list_salt_git_repositories():
         return [('WARNING', 'No git repository provided!', 3)]
 
     for git_repo in git_repo_list:
-        os.chdir(git_repo[:-4])
+        os.chdir(git_repo)
         pretty_status()
 
 

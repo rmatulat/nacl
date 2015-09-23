@@ -226,12 +226,12 @@ class TestNaclGit(unittest.TestCase):
     # Where to patch:
     # http://www.voidspace.org.uk/python/mock/patch.html#where-to-patch
     #
-    # get_dir_list_from_filesystem is located in nacl.fileutils.
+    # get_salt_root_dirs is located in nacl.fileutils.
     # BUT:
     # It is imported in nacl.git like this:
-    # from nacl.fileutils import get_dir_list_from_filesystem
+    # from nacl.fileutils import get_salt_root_dirs
     #
-    # So now get_dir_list_from_filesystem has to be mocked in nacl.git, because
+    # So now get_salt_root_dirs has to be mocked in nacl.git, because
     # it is imported into it!
     #
     # Note:
@@ -239,7 +239,7 @@ class TestNaclGit(unittest.TestCase):
     # the functions under tests.
     # When changing the messages one has to change the tests as well!
 
-    @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=[])
+    @mock.patch('nacl.git.get_salt_root_dirs', return_value=[])
     def test_list_salt_git_repositories(self, mock_fu):
         self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_salt_git_repositories._fn())
 
