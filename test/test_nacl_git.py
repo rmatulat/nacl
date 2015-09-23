@@ -240,7 +240,8 @@ class TestNaclGit(unittest.TestCase):
     # When changing the messages one has to change the tests as well!
 
     @mock.patch('nacl.git.get_salt_root_dirs', return_value=[])
-    def test_list_salt_git_repositories(self, mock_fu):
+    @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=[])
+    def test_list_salt_git_repositories(self, mock_gdlff, mock_gsrd):
         self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_salt_git_repositories._fn())
 
     # remote_diff()

@@ -30,19 +30,22 @@ def list_salt_git_repositories():
     they have uncommitted changes or not and list them in a pretty way.
     """
 
-    git_repo_list = get_salt_root_dirs()
+    salt_root_dir = get_salt_root_dirs()
+    all_git_dirs_found = [x[:-5] for x in get_dir_list_from_filesystem()]
+    check_dirs = sorted(set(salt_root_dir + all_git_dirs_found))
+
+    if not check_dirs:
+        return [('WARNING', 'No git repository provided!', 3)]
 
     # Some Header
     # Fix this: Use a decorator for printing out stuff instead
     print("%-50s %-15s %-15s %-15s %s" % ("Directory", "Active Branch", "Status", "Local Master", "All Branches"))
     print("=" * 120)
 
-    if not git_repo_list:
-        return [('WARNING', 'No git repository provided!', 3)]
-
-    for git_repo in git_repo_list:
-        os.chdir(git_repo)
-        pretty_status()
+    for git_dir in check_dirs:
+        os.chdir(git_dir)
+        if is_git_repo():
+            pretty_status()
 
 
 def merge_all_repositories():
