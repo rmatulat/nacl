@@ -21,6 +21,22 @@ from nacl.decorator import log, ListLine
 from nacl.exceptions import GitCallError
 
 
+def get_all_possible_git_dirs():
+    """
+    There are two ways in getting git repo locations
+
+    There are two ways to locate salt related git repos:
+    1. Via the salt config when looking into file_root and pillar_root and
+    2. via get_dir_list_from_filesystem
+
+    We have to go both paths and then unify the results
+    """
+    salt_root_dir = get_salt_root_dirs()
+    all_git_dirs_found = [x[:-5] for x in get_dir_list_from_filesystem()]
+    possible_git_dirs = sorted(set(salt_root_dir + all_git_dirs_found))
+    return possible_git_dirs
+
+
 @log
 def list_salt_git_repositories():
     """
@@ -30,9 +46,7 @@ def list_salt_git_repositories():
     they have uncommitted changes or not and list them in a pretty way.
     """
 
-    salt_root_dir = get_salt_root_dirs()
-    all_git_dirs_found = [x[:-5] for x in get_dir_list_from_filesystem()]
-    check_dirs = sorted(set(salt_root_dir + all_git_dirs_found))
+    check_dirs = get_all_possible_git_dirs()
 
     if not check_dirs:
         return [('WARNING', 'No git repository provided!', 3)]
@@ -55,10 +69,10 @@ def merge_all_repositories():
     Merge all repositories at once when origin/master is ahead
     and the repository is clean.
     We will merge into local master!
-    merge_git_repo is tested as well as get_dir_list_from_filesystem.
+    merge_git_repo is tested as well as get_all_possible_git_dirs.
     So no further tests intended.
     """
-    git_repo_list = get_dir_list_from_filesystem()
+    git_repo_list = get_all_possible_git_dirs()
     for git_repo in git_repo_list:
         merge_git_repo(git_repo)
 
@@ -81,7 +95,7 @@ def merge_git_repo(git_repo_name=None):
     __ret = []
 
     if git_repo_name:
-        os.chdir(git_repo_name[:-4])
+        os.chdir(git_repo_name)
 
     branch = get_current_branch()
     dir_name = os.getcwd()

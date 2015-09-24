@@ -28,6 +28,7 @@ from nacl.git import get_user_name
 from nacl.git import get_user_email
 from nacl.git import set_user_name
 from nacl.git import set_user_email
+from nacl.git import get_all_possible_git_dirs
 
 
 class TestNaclGit(unittest.TestCase):
@@ -239,10 +240,16 @@ class TestNaclGit(unittest.TestCase):
     # the functions under tests.
     # When changing the messages one has to change the tests as well!
 
-    @mock.patch('nacl.git.get_salt_root_dirs', return_value=[])
-    @mock.patch('nacl.git.get_dir_list_from_filesystem', return_value=[])
-    def test_list_salt_git_repositories(self, mock_gdlff, mock_gsrd):
+    @mock.patch('nacl.git.get_all_possible_git_dirs', return_value=[])
+    def test_list_salt_git_repositories(self, mock_gapgd):
         self.assertEqual([('WARNING', 'No git repository provided!', 3)], list_salt_git_repositories._fn())
+
+    # get_all_possible_git_dirs()
+    @mock.patch('nacl.git.get_salt_root_dirs', return_value=['/foo'])
+    @mock.patch('nacl.git.get_dir_list_from_filesystem',
+                return_value=['/foo/.git', '/bar/.git'])
+    def test_get_all_possible_git_dirs(self, mock_gdlff, mock_gsrd):
+        self.assertEqual(['/bar', '/foo'], get_all_possible_git_dirs())
 
     # remote_diff()
 
