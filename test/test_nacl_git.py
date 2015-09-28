@@ -248,7 +248,8 @@ class TestNaclGit(unittest.TestCase):
     @mock.patch('nacl.git.get_salt_root_dirs', return_value=['/foo'])
     @mock.patch('nacl.git.get_dir_list_from_filesystem',
                 return_value=['/foo/.git', '/bar/.git'])
-    def test_get_all_possible_git_dirs(self, mock_gdlff, mock_gsrd):
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    def test_get_all_possible_git_dirs(self, mock_isgr, mock_gdlff, mock_gsrd):
         self.assertEqual(['/bar', '/foo'], get_all_possible_git_dirs())
 
     # remote_diff()

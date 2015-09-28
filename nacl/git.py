@@ -33,8 +33,9 @@ def get_all_possible_git_dirs():
     """
     salt_root_dir = get_salt_root_dirs()
     all_git_dirs_found = [x[:-5] for x in get_dir_list_from_filesystem()]
-    possible_git_dirs = sorted(set(salt_root_dir + all_git_dirs_found))
-    return possible_git_dirs
+    possible_git_dirs = set(salt_root_dir + all_git_dirs_found)
+    checked_git_dirs = [x for x in possible_git_dirs if is_git_repo(x)]
+    return sorted(checked_git_dirs)
 
 
 @log
@@ -58,8 +59,7 @@ def list_salt_git_repositories():
 
     for git_dir in check_dirs:
         os.chdir(git_dir)
-        if is_git_repo():
-            pretty_status()
+        pretty_status()
 
 
 def merge_all_repositories():
@@ -74,7 +74,7 @@ def merge_all_repositories():
     """
     git_repo_list = get_all_possible_git_dirs()
     for git_repo in git_repo_list:
-        merge_git_repo(git_repo)
+            merge_git_repo(git_repo)
 
 
 def merge_single_repository():
