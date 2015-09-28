@@ -74,7 +74,7 @@ def merge_all_repositories():
     """
     git_repo_list = get_all_possible_git_dirs()
     for git_repo in git_repo_list:
-            merge_git_repo(git_repo)
+        merge_git_repo(git_repo)
 
 
 def merge_single_repository():
