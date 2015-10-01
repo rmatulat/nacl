@@ -343,12 +343,14 @@ class NaclFlow(object):
 
         if is_new_mergerequest:
             __ret.append(('GREEN', "Create a new mergerequest"))
-            self.api.createmergerequest(
-                self.p_id,
-                sourcebranch,
-                targetbranch,
-                title,
-                assignee_id=assignee_id)
+
+            if not self.api.createmergerequest(
+                    self.p_id,
+                    sourcebranch,
+                    targetbranch,
+                    title,
+                    assignee_id=assignee_id):
+                __ret.append(('FAIL', "Creating Mergerequest failed!"))
         else:
             __ret.append(('INFO', "Mergerequests exists. Skipping"))
 

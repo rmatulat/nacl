@@ -411,6 +411,35 @@ class TestNaclFlow(unittest.TestCase):
                            ('INFO', 'Pushing to origin foo'),
                            ('GREEN', 'Create a new mergerequest')], self.flow.push_patch._fn(self.flow))
 
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.git.get_last_commit_sha', return_value='aabbcc')
+    @mock.patch('nacl.git.is_commit_on_remote', return_value=False)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.remote_branch_exists',
+                return_value=True)
+    @mock.patch('nacl.git.git', return_value='dummy')
+    @mock.patch('nacl.git.need_pull_push', return_value=2)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_new',
+                return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.createmergerequest',
+                return_value=False)
+    def test_push_patch_add_mergerequest_fails(self,
+                                               mock_gcb,
+                                               mock_bic,
+                                               mock_glc,
+                                               mock_icor,
+                                               mock_rbe,
+                                               mock_git,
+                                               mock_npp,
+                                               mock_mrn,
+                                               mock_cmr):
+        """ When the mergerequest fails """
+        self.assertEquals([('GREEN', 'Branch: foo'),
+                          ('INFO', 'Pushing to origin foo'),
+                          ('GREEN', 'Create a new mergerequest'),
+                          ('FAIL', 'Creating Mergerequest failed!')],
+                          self.flow.push_patch._fn(self.flow))
+
     # Mergerequests exists
     @mock.patch('nacl.git.get_current_branch', return_value='foo')
     @mock.patch('nacl.git.branch_is_clean', return_value=True)
