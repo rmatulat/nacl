@@ -392,16 +392,17 @@ class NaclFlow(object):
                 __ret.append((
                     'GREEN',
                     "ASSIGNEE: " + mergerequest['assignee']['name']))
-            __ret.append(('GREEN', "ID: " + str(mergerequest['id'])))
+            __ret.append(('GREEN', "ID: " + str(mergerequest['iid'])))
             __ret.append(('GREEN', "DATE: " + str(mergerequest['created_at'])))
             __ret.append(('INFO', '-' * 80))
             return __ret
         return __ret
 
     @log
-    def get_mergerequest_details(self, mergerequest_id=None):
+    def get_mergerequest_details(self, mergerequest_iid=None):
         """ Display the details of a mergerequest """
         __ret = []
+        mergerequest_id = self.api.mergerequest_iid_to_id(mergerequest_iid)
         values = self.api.get_mergerequest_details(mergerequest_id)
         change = values['changes']
         comments = values['comments']
@@ -426,7 +427,69 @@ class NaclFlow(object):
         return __ret
 
     @log
-    def accept_mergerequest(self, mergerequest_id=None):
+    def test_merge_request(self, mergerequest_iid=None):
+        """
+        Test a mergerequest localy
+
+        Fetch the content of a mergerequest and put it into a local
+        branch so that one can test and inspect the changes before
+        accepting the MR.
+        """
+
+        __ret = []
+
+        if not git.is_git_repo():
+            __ret.append(('WARNING', "Not a git repository", 1))
+            return __ret
+
+        # TODO:
+        # Maybe we can create a workflow to git stash automatically.
+        # But it feels bad because we just do things with code the owner
+        # of this code is not expecting (like stashing)
+        if not git.branch_is_clean():
+            __ret.append((
+                'FAIL',
+                "Your current branch is not clean. "
+                "Please git stash first your changes.", 1))
+
+            return __ret
+
+        mergerequest_id = self.api.mergerequest_iid_to_id(mergerequest_iid)
+
+        if not self.api.is_mergerequest_open(mergerequest_id):
+            __ret.append((
+                'FAIL',
+                "Mergerequest '{0}' already closed? "
+                "Is there a mergerequest with this ID?"
+                .format(mergerequest_id), 1))
+
+            return __ret
+
+        values = self.api.get_mergerequest_details(mergerequest_id)
+        if not values:
+            __ret.append(('FAIL', "Mergerequest not found", 1))
+            return __ret
+
+        mr_branch = values['changes']['source_branch']
+
+        if git.branch_exist('test_' + mr_branch):
+            __ret.append((
+                'FAIL',
+                "Branch test_{0} exists!".format(mr_branch), 1))
+
+            return __ret
+
+        __ret.append(('GREEN', "Fetch from origin"))
+        git.git(['fetch'])
+        __ret.append(('GREEN', "Checkout test_{0}".format(mr_branch)))
+        git.git(['checkout', '-b', 'test_' + mr_branch, 'origin/' + mr_branch])
+        __ret.append(('GREEN',
+                      "Current branch: {0}".
+                      format(git.get_current_branch())))
+        return __ret
+
+    @log
+    def accept_mergerequest(self, mergerequest_iid=None):
         """
         Accept a mergerequest
 
@@ -439,8 +502,10 @@ class NaclFlow(object):
 
         __ret = []
 
+        mergerequest_id = self.api.mergerequest_iid_to_id(mergerequest_iid)
+
         do_merge = query_yes_no("Should mergerequest {0} be merged?"
-                                .format(mergerequest_id),
+                                .format(mergerequest_iid),
                                 "no")
 
         if not self.api.is_mergerequest_open(mergerequest_id):

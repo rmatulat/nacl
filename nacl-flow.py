@@ -11,6 +11,7 @@ Usage:
   nacl-flow.py (projectmember | pm)
   nacl-flow.py (mergerequests | mr) [all]
   nacl-flow.py (mergedetails | md) MERGEREQUEST_ID
+  nacl-flow.py (test-merge | tm) MERGEREQUEST_ID
   nacl-flow.py (accept-merge | am) MERGEREQUEST_ID
   nacl-flow.py (start-patch | sp) ID
   nacl-flow.py (commit-patch | cp) [ASSIGNEE] [TEXT]
@@ -26,7 +27,8 @@ Options:
   projectmember     List all possible assignees
   mergerequests     List all open mergerequests of a project
   mergedetails      Show details of a mergerequest
-  acceptmerge       Accept a mergerequest
+  test-merge        Test a mergerequest locally
+  accept-merge      Accept a mergerequest
   start-patch       Step 1 in resolving an issue: start a patch. NOTE: You have to provide the ID of the issue
   commit-patch      Step 2 open a mergerequest, ASSIGNEE = ID of a user, TEXT = MR text
   get-commit        Get infos of a commit and display them
@@ -96,3 +98,7 @@ if arguments['commit-patch'] or arguments['cp']:
 if arguments['get-commit'] or arguments['gc']:
     flow = NaclFlow()
     flow.get_commit(commit=arguments['SHA'])
+
+if arguments['test-merge'] or arguments['tm']:
+    flow = NaclFlow()
+    flow.test_merge_request(arguments['MERGEREQUEST_ID'])

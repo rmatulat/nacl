@@ -96,7 +96,7 @@ class GitLapApiCall(Gitlab):
 
         try:
             return bool(mr_details['changes']['state'] == 'opened')
-        except KeyError:
+        except (KeyError, TypeError):
             return False
 
     def get_all_issues(self):
@@ -138,8 +138,33 @@ class GitLapApiCall(Gitlab):
         all_project_issues = self.get_all_issues()
         if all_project_issues:
             for issue in all_project_issues:
-                if int(issue['iid']) == int(iid):
-                    return issue['id']
+                try:
+                    if int(issue['iid']) == int(iid):
+                        return issue['id']
+                except ValueError:
+                    return False
+        return False
+
+    def mergerequest_iid_to_id(self, iid=None):
+        """
+        Convert iid to id
+
+        The iid is the number shown to the user in the GUI.
+        But behind the scenes there is a id, that is being used instead for
+        querying the API. So we have to transform the user-friendly iid
+        to an id.
+        """
+        if not iid:
+            raise ValueError('iid mus be provided')
+
+        all_project_mergerequests = self.getmergerequests(self.p_id)
+        if all_project_mergerequests:
+            for mergerequest in all_project_mergerequests:
+                try:
+                    if int(mergerequest['iid']) == int(iid):
+                        return mergerequest['id']
+                except ValueError:
+                    return False
         return False
 
     def get_mergerequest_details(self, mergerequest_id):

@@ -589,7 +589,7 @@ class TestNaclFlow(unittest.TestCase):
         'title': 'foo_title',
         'assignee': {'name': 'Jane Doe'},
         'source_branch': 'foo_branch',
-        'id': 123,
+        'iid': 123,
         'created_at': 'foo_date'}]
 
     sample_mr_closed_list = [{
@@ -597,7 +597,7 @@ class TestNaclFlow(unittest.TestCase):
         'title': 'foo_title',
         'assignee': {'name': 'Jane Doe'},
         'source_branch': 'foo_branch',
-        'id': 123,
+        'iid': 123,
         'created_at': 'foo_date'}]
 
     # list_all_mergerequests()
@@ -643,6 +643,7 @@ class TestNaclFlow(unittest.TestCase):
             'title': 'foo_title',
             'author': {'name': 'Jane Doe'},
             'state': 'merged',
+            'source_branch': 'bar',
             'created_at': 'foo_date',
             'changes': [{'diff': 'foo_diff'}]
         },
@@ -662,7 +663,9 @@ class TestNaclFlow(unittest.TestCase):
 
     @mock.patch('nacl.gitlabapi.GitLapApiCall.get_mergerequest_details',
                 return_value=sample_mr_open)
-    def test_get_mergerequest_details(self, mock):
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    def test_get_mergerequest_details(self, mock_miti, mock_gmrd):
         self.assertEquals([('INFO', 'TITLE: foo_title'),
                            ('GREEN', 'AUTHOR: Jane Doe'),
                            ('BOLD', 'STATE: merged'),
@@ -677,9 +680,107 @@ class TestNaclFlow(unittest.TestCase):
     # MR not found
     @mock.patch('nacl.gitlabapi.GitLapApiCall.get_mergerequest_details',
                 return_value=sample_mr_not_found)
-    def test_get_mergerequest__mr_not_found(self, mock):
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    def test_get_mergerequest__mr_not_found(self, mock_miti, mock_gmrd):
         self.assertEquals([('FAIL', 'Mergerequest not found', 1)],
                           self.flow.get_mergerequest_details._fn(self.flow))
+
+    # test_merge_request()
+
+    # Is not a git repo
+    @mock.patch('nacl.git.is_git_repo', return_value=False)
+    def test_test_merge_request_no_git_repo(self, mock):
+        self.assertEqual([('WARNING', 'Not a git repository', 1)],
+                         self.flow.test_merge_request._fn(self.flow))
+
+    # Branch not clean
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    @mock.patch('nacl.git.branch_is_clean', return_value=False)
+    def test_test_merge_request_branch_not_clean(self, mock_igr, mock_bic):
+        self.assertEqual([('FAIL',
+                           'Your current branch is not clean. Please git stash first your changes.', 1)],
+                         self.flow.test_merge_request._fn(self.flow))
+
+    # Mergerequest already closed?
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
+                return_value=False)
+    def test_test_merge_request_mr_closed(self,
+                                          mock_igr,
+                                          mock_bic,
+                                          mock_miti,
+                                          mock_imro):
+        self.assertEqual([('FAIL',
+                           "Mergerequest '123' already closed? Is there a mergerequest with this ID?", 1)],
+                         self.flow.test_merge_request._fn(self.flow, 123))
+
+    # Mergerequest not found?
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
+                return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_mergerequest_details',
+                return_value=False)
+    def test_test_merge_request_mr_not_found(self,
+                                             mock_igr,
+                                             mock_bic,
+                                             mock_miti,
+                                             mock_imro,
+                                             mock_gmrd):
+        self.assertEqual([('FAIL', 'Mergerequest not found', 1)],
+                         self.flow.test_merge_request._fn(self.flow, 123))
+
+    # Testbranch exists
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
+                return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_mergerequest_details',
+                return_value=sample_mr_open)
+    @mock.patch('nacl.git.branch_exist', return_value=True)
+    def test_test_merge_request_test_branch_exists(self,
+                                                   mock_igr,
+                                                   mock_bic,
+                                                   mock_miti,
+                                                   mock_imro,
+                                                   mock_gmrd,
+                                                   mock_be):
+        self.assertEqual([('FAIL', 'Branch test_bar exists!', 1)],
+                         self.flow.test_merge_request._fn(self.flow, 123))
+
+    # All is fine
+    @mock.patch('nacl.git.is_git_repo', return_value=True)
+    @mock.patch('nacl.git.branch_is_clean', return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
+                return_value=True)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_mergerequest_details',
+                return_value=sample_mr_open)
+    @mock.patch('nacl.git.branch_exist', return_value=False)
+    @mock.patch('nacl.git.git', return_value=True)
+    @mock.patch('nacl.git.get_current_branch', return_value='test_bar')
+    def test_test_merge_request_ok(self,
+                                   mock_igr,
+                                   mock_bic,
+                                   mock_miti,
+                                   mock_imro,
+                                   mock_gmrd,
+                                   mock_be,
+                                   mock_git,
+                                   mock_gcb):
+        self.assertEqual([('GREEN', 'Fetch from origin'),
+                          ('GREEN', 'Checkout test_bar'),
+                          ('GREEN', 'Current branch: test_bar')],
+                         self.flow.test_merge_request._fn(self.flow, 123))
 
     # accept_mergerequest()
 
@@ -687,16 +788,23 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.flow.query_yes_no', return_value=True)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
                 return_value=False)
-    def test_accept_mergerequest_mr_closed(self, mock_yn, mock_imro):
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    def test_accept_mergerequest_mr_closed(self,
+                                           mock_miti,
+                                           mock_yn,
+                                           mock_imro):
         self.assertEquals([('FAIL',
-                            "Mergerequest 'None' already closed? Is there a mergerequest with this ID?",
+                            "Mergerequest '123' already closed? Is there a mergerequest with this ID?",
                             1)], self.flow.accept_mergerequest._fn(self.flow))
 
     # Merge aborted
     @mock.patch('nacl.flow.query_yes_no', return_value=False)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.is_mergerequest_open',
                 return_value=True)
-    def test_accept_mergerequest_aborted(self, mock_yn, mock_imro):
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
+    def test_accept_mergerequest_aborted(self, mock_miti, mock_yn, mock_imro):
         self.assertEquals([('INFO', 'Merge aborted!')], self.flow.accept_mergerequest._fn(self.flow))
 
     sample__ret_value = {
@@ -718,12 +826,15 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.gitlabapi.GitLapApiCall.accept_mergerequest',
                 return_value=sample__ret_value)
     @mock.patch('nacl.git.git', return_value=None)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
     def test_accept_mergerequest_workflow(self,
                                           mock_yn,
                                           mock_imro,
                                           mock_mim,
                                           mock_amr,
-                                          mock_git):
+                                          mock_git,
+                                          mock_miti):
         self.assertEquals([('GREEN', 'Start merge'),
                            ('GREEN', 'Merge complete. Remove foo')],
                           self.flow.accept_mergerequest._fn(self.flow))
@@ -739,7 +850,10 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.git.git', return_value=None)
     @mock.patch('nacl.gitlabapi.GitLapApiCall.addcommenttomergerequest',
                 return_value=None)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
     def test_accept_mergerequest_not_mergeable(self,
+                                               mock_miti,
                                                mock_yn,
                                                mock_imro,
                                                mock_mim,
@@ -759,7 +873,10 @@ class TestNaclFlow(unittest.TestCase):
     @mock.patch('nacl.gitlabapi.GitLapApiCall.accept_mergerequest',
                 return_value=sample__ret_value_not_merged)
     @mock.patch('nacl.git.git', return_value=None)
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.mergerequest_iid_to_id',
+                return_value=123)
     def test_accept_mergerequest_not_merged(self,
+                                            mock_miti,
                                             mock_yn,
                                             mock_imro,
                                             mock_mim,

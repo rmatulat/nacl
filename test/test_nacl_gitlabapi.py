@@ -20,6 +20,17 @@ class TestNaclGitLapApiCall(unittest.TestCase):
             u'git@gitlab.example.com:saltstack/baz.git',
             u'git@gitlab.example.com:saltstack/foz.git']}
 
+    fake_config_2 = {
+        u'gitapiserver': u'https://gitlab.other.com/',
+        u'gitapitoken': u'OtherToken',
+        u'gitgroup': u'saltstack',
+        u'githostertype': u'gitlab',
+        u'ignore_repositories': [
+            u'git@gitlab.example.com:saltstack/foo.git',
+            u'git@gitlab.example.com:saltstack/bar.git',
+            u'git@gitlab.example.com:saltstack/baz.git',
+            u'git@gitlab.example.com:saltstack/foz.git']}
+
     @mock.patch(
         "nacl.gitlabapi.get_users_nacl_conf",
         side_effect=[fake_config])
@@ -63,8 +74,18 @@ class TestNaclGitLapApiCall(unittest.TestCase):
         self.assertRaises(SystemExit, self.git.get_project_id)
 
     # _get_seperator()
+
     def test_get_seperator(self):
         self.assertEqual(self.git._get_seperator(), 'gitlab.example.com')
+
+    # Test an https:// URL
+    @mock.patch('nacl.gitlabapi.get_users_nacl_conf',
+                side_effect=[fake_config_2])
+    @mock.patch('nacl.gitlabapi.GitLapApiCall.get_project_id',
+                return_value=123)
+    def test_get_seperator_https(self, mock_gpi, mock):
+        self.git = GitLapApiCall()
+        self.assertEqual(self.git._get_seperator(), 'gitlab.other.com')
 
     # get_group_id
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getgroups",
@@ -192,6 +213,7 @@ class TestNaclGitLapApiCall(unittest.TestCase):
         self.assertEqual(self.git.edit_issue(11), {'foo': 'bar'})
 
     # issue_iid_to_uid()
+
     def test_issue_iid_to_uid_raises(self):
         self.assertRaises(ValueError, self.git.issue_iid_to_uid)
 
@@ -210,7 +232,40 @@ class TestNaclGitLapApiCall(unittest.TestCase):
     def test_issue_iid_to_uid_id_not_found(self, mock):
         self.assertFalse(self.git.issue_iid_to_uid(22))
 
+    # a string is given and strings can not be project id's
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.get_all_issues",
+                return_value=all_project_issues)
+    def test_issue_iid_to_uid_string_given(self, mock):
+        self.assertFalse(self.git.issue_iid_to_uid('aa'))
+
+    # mergerequest_iid_to_id()
+
+    def test_mergerequest_raises(self):
+        self.assertRaises(ValueError, self.git.mergerequest_iid_to_id)
+
+    all_project_mr = [{
+        'iid': 11,
+        'id': 1
+    }]
+
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
+                return_value=all_project_mr)
+    def test_mergerequest_id__returned(self, mock):
+        self.assertEqual(self.git.mergerequest_iid_to_id(11), 1)
+
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
+                return_value=all_project_mr)
+    def test_mergerequest_id_not_found(self, mock):
+        self.assertFalse(self.git.mergerequest_iid_to_id(22))
+
+    # a string is given and strings can not be MR id's
+    @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequests",
+                return_value=all_project_mr)
+    def test_mergerequest_string_given(self, mock):
+        self.assertFalse(self.git.mergerequest_iid_to_id('aa'))
+
     # get_mergerequest_details()
+
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequestchanges",
                 return_value='foo')
     @mock.patch("nacl.gitlabapi.GitLapApiCall.getmergerequestcomments",
