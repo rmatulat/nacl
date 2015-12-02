@@ -170,8 +170,11 @@ def checkout_branch(branch=None):
     __ret = []
 
     if branch is None:
-        git(['checkout', 'master'])
-        __ret.append(('INFO', 'Branch: {0}'.format(get_current_branch())))
+        try:
+            git(['checkout', 'master'])
+            __ret.append(('INFO', 'Branch: {0}'.format(get_current_branch())))
+        except GitCallError as exc:
+            __ret.append(('FAIL', 'Unable to checkout Master Branch : {1}'.format(branch, exc)))
     elif branch == get_current_branch():
         __ret.append(('INFO', 'Already in {0}'.format(get_current_branch())))
     else:

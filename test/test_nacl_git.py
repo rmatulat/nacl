@@ -297,7 +297,7 @@ class TestNaclGit(unittest.TestCase):
                                                   mock_pigr):
         self.assertEqual([('INFO', 'Switch to branch: foo')], checkout_branch._fn('bar'))
 
-    # git raises an exception
+    # git raises an exception when branch is provided
     @mock.patch('nacl.git.git', side_effect=GitCallError())
     @mock.patch('nacl.git.get_current_branch', return_value='foo')
     @mock.patch('nacl.git.print_is_git_repo', return_value=None)
@@ -306,6 +306,18 @@ class TestNaclGit(unittest.TestCase):
                                         mock_gcb,
                                         mock_pigr):
         self.assertEqual([('FAIL', 'Unable to checkout bar : ')], checkout_branch._fn('bar'))
+
+    # git raises an exception when branch is NOT provided (switching to master)
+    @mock.patch('nacl.git.git', side_effect=GitCallError())
+    @mock.patch('nacl.git.get_current_branch', return_value='foo')
+    @mock.patch('nacl.git.print_is_git_repo', return_value=None)
+    def test_checkout_branch_git_raises2(self,
+                                         mock_git,
+                                         mock_gcb,
+                                         mock_pigr):
+        self.assertEqual([('FAIL',
+                         'Unable to checkout Master Branch : ')],
+                         checkout_branch._fn(None))
 
     def git_side_effect(args):
         raise GitCallError
